@@ -1,0 +1,21 @@
+<package>
+  <description brief="novatel_test">
+     Basic tests for novatel driver nodes.
+  </description>
+  <author>Mike Purvis</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/novatel_test</url>
+  <rosdep name="python-pcapy" />
+  <rosdep name="python-impacket" />
+  <depend package="rospy" />
+  <depend package="rostest" />
+  <depend package="diagnostic_msgs" />
+  <depend package="sensor_msgs" />
+  <depend package="novatel_bridge" />
+  <depend package="novatel_params" />
+  <depend package="novatel_msgs" />
+  <depend package="novatel_generated_msgs" />
+</package>
+
+

@@ -1,0 +1,19 @@
+<launch>
+  <group ns="novatel">
+    <rosparam>
+      include_raw: true
+      control: false
+    </rosparam>
+    <param name="pcap_file" value="$(find novatel_test)/pcap/basic_data_smoke.pcap" />
+    <node name="novatel_bridge" pkg="novatel_bridge" type="bridge" output="screen" />
+    <node name="novatel_publisher" pkg="novatel_publisher" type="publisher" />
+    <node name="novatel_diagnostics" pkg="novatel_diagnostics" type="diagnostics_publisher" />
+
+    <test name="novatel_test" pkg="novatel_test" type="basic_data_smoke.py"
+          test-name="basic_smoke" time-limit="10.0" />
+
+    <!-- <node name="novatel_test" pkg="novatel_test" type="basic_data_smoke.py" output="screen"
+          /> -->
+    
+  </group>
+</launch>
