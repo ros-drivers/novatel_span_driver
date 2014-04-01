@@ -1,0 +1,26 @@
+<launch>
+  <group ns="novatel">
+    <!-- Default IP -->
+    <rosparam>
+      ip: 198.161.73.9
+      include_raw: false
+      control: false
+     <!--com_ports: [
+        { baud: 115200, input: "BASE_1_GNSS", output: "BASE_1_GNSS" },
+        { baud: 115200, input: "GNSS_1", output: "GNSS_1" },
+        ] -->
+      geometry:
+        imu_mounting_angle: { x: 0, y: -90, z: 0 }
+        imu_lever_arm: { x: 0, y: 0, z: 0 }
+        primary_gnss_lever_arm: { x: 0.5, y: 0.0, z: -0.5 }
+      configuration:
+        imu_connect: { port: com2, type: imu_imar_fsas }
+        log_request: { inspvaxb: 0.1, corrimudatab: 0.1, inscovb: 0.1, bestposb: 0.1, bestxyzb: 0.1 }
+        <!--command: { setinitattitude: 0 0 0 3 3 10 }-->
+      rate: 200 <!-- data rate of the IMU impacts some logs -->
+    </rosparam>
+    <node name="novatelcentral" pkg="novatelcentral" type="bridge.py" output="screen" />
+    <node name="novatel_params" pkg="novatel_params" type="params.py" output="screen" />
+    <node name="novatel_publisher" pkg="novatel_publisher" type="publisher.py" output="screen" />
+  </group>
+</launch>
