@@ -1,8 +1,6 @@
 # NovAtel Central
 ### A SPAN ROS Driver
 
-ROS Version: Hydro
-
 This ROS package connects to a [NovAtel](http://www.novatel.com/) receiver running [SPAN](http://www.novatel.com/span) 
 over ethernet or serial and provides the following ROS messages
 
