@@ -36,7 +36,15 @@ from novatel_generated_msgs.msg import AllMsgs
 
 # Node source
 from port import Port
-from mapping import msgs
+
+from roslib.packages import get_pkg_dir
+from os import path
+import imp
+msgs_dir = get_pkg_dir('novatel_msgs')
+msgs_filename = path.join(msgs_dir, "src", "mapping.py")
+mapping = imp.load_source('msgs', msgs_filename)
+msgs = mapping.msgs
+
 from handlers import GroupHandler, MessageHandler
 import translator
 

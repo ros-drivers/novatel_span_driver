@@ -34,7 +34,14 @@ import novatel_msgs.msg
 # Node
 from port import Port
 from handlers import AckHandler
-import mapping
+
+from roslib.packages import get_pkg_dir
+from os import path
+import imp
+msgs_dir = get_pkg_dir('novatel_msgs')
+msgs_filename = path.join(msgs_dir, "src", "mapping.py")
+mapping = imp.load_source('msgs', msgs_filename)
+msgs = mapping.msgs
 
 # Python
 import threading

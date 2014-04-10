@@ -30,7 +30,11 @@
 import roslib; roslib.load_manifest('novatel_msgs')
 from novatel_msgs.msg import *
 
+groups = {
+      }
+
 msgs = {
+      0: ("ack", Ack),
       42: ("bestpos", BESTPOSB),
       241:("bestxyz", BESTXYZ),
       264:("inscov", INSCOV),
@@ -42,8 +46,7 @@ msgs = {
       }
 
 # Message excluded from the generated AllMsgs aggregate message.
-all_msgs_exclude = set([Ack, SaveRestoreControl, InstallationCalibrationControl, 
-    GAMSCalibrationControl, ProgramControl, GNSSControl])
+all_msgs_exclude = set([Ack])
 for name, msg in msgs.values():
   if msg in all_msgs_exclude:
     msg.in_all_msgs = False

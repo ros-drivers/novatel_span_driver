@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(novatel_generated_msgs)
 
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -8,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   novatel_msgs
   rospy
   std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions

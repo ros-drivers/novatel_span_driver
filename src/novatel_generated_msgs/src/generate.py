@@ -26,10 +26,15 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import roslib; roslib.load_manifest('novatel_generated_msgs')
-from roslib.packages import get_pkg_dir
-from mapping import msgs
+import imp
 from os import path
+import roslib; roslib.load_manifest('novatel_generated_msgs')
+#roslib.load_manifest('novatel_msgs')
+from roslib.packages import get_pkg_dir
+msgs_dir = get_pkg_dir('novatel_msgs')
+msgs_filename = path.join(msgs_dir, "src", "mapping.py")
+mapping = imp.load_source('msgs', msgs_filename)
+
 from sys import stdout
 
 pkg_dir = get_pkg_dir('novatel_generated_msgs')
@@ -39,8 +44,8 @@ all_msgs_filename = path.join(pkg_dir, "msg", "AllMsgs.msg")
 with open(all_msgs_filename, "w") as all_msgs_f:
   all_msgs_f.write("time last_changed\n")
   all_msgs_f.write("time last_sent\n")
-  for msg_num in msgs.keys():
-    msg_tuple = msgs[msg_num]
+  for msg_num in mapping.msgs.keys():
+    msg_tuple = mapping.msgs[msg_num]
     if msg_tuple:
       name, msg_cls = msg_tuple
       if msg_cls.in_all_msgs: 
