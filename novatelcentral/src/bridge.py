@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 
 # Software License Agreement (BSD)
-# 
+#
 #  file      @bridge.py
 #  authors   Mike Purvis <mpurvis@clearpathrobotics.com>
 #            NovAtel <novatel.com/support>
 #  copyright Copyright (c) 2012, Clearpath Robotics, Inc., All rights reserved.
 #            Copyright (c) 2014, NovAtel Inc., All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
 #  * Redistributions of source code must retain the above copyright notice, this list of conditions and the
 #    following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the 
+#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
 #    following disclaimer in the documentation and/or other materials provided with the distribution.
 #  * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or promote
 #    products derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WAR-
 # RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 # PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, IN-
@@ -48,10 +48,10 @@ from handlers import NullHandler, GroupHandler, MessageHandler, AckHandler
 from std_msgs.msg import String
 
 PORTS_DATA = {
-    "realtime": 3001,
-    "logging": 3001
+    "realtime": 2000,
+    "logging": 2000
     }
-PORT_CONTROL = 3001
+PORT_CONTROL = 2000
 
 DEFAULT_IP = '198.161.73.9'
 PREFIX_DEFAULTS = {
@@ -141,7 +141,7 @@ def create_usb(name, port_):
   socks.append(usb)
   return usb
 
-def create_serial(name, rate_, port_):    
+def create_serial(name, rate_, port_):
   ser = serial.Serial(
      port=port_,
 	  baudrate=rate_,
@@ -152,7 +152,7 @@ def create_serial(name, rate_, port_):
      rtscts=False,
      dsrdtr=False,
      xonxoff=False)
- 
+
   if ser.isOpen():
     ser.close()
 
@@ -207,7 +207,7 @@ def create_test_sock(pcap_filename):
       data = data_io.read(byte_count)
       if data == "":
         rospy.signal_shutdown("Test completed.")
-      return data  
+      return data
     def settimeout(self, timeout):
       pass
 
@@ -220,7 +220,7 @@ def configure_receiver(port):
     logger = receiver_config['log_request']
     imu_connect = receiver_config['imu_connect']
     commands = receiver_config['command']
-    
+
     if type(port) == type(serial.Serial()):
       put = port.write
     else:
@@ -239,16 +239,16 @@ def configure_receiver(port):
 def shutdown():
   monitor.finish.set()
   monitor.join()
-  rospy.loginfo("Thread monitor finished.") 
+  rospy.loginfo("Thread monitor finished.")
   for name, port in ports.items():
     port.finish.set()
     port.join()
-    rospy.loginfo("Port %s thread finished." % name) 
+    rospy.loginfo("Port %s thread finished." % name)
   for sock in socks:
     if type(sock) != type(serial.Serial()):
       sock.shutdown(socket.SHUT_RDWR)
     sock.close()
-  rospy.loginfo("Sockets closed.") 
+  rospy.loginfo("Sockets closed.")
 
 if __name__ == '__main__':
     try:

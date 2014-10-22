@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 
 # Software License Agreement (BSD)
-# 
+#
 #  file      @publisher.py
 #  authors   Mike Purvis <mpurvis@clearpathrobotics.com>
 #            NovAtel <novatel.com/support>
 #  copyright Copyright (c) 2012, Clearpath Robotics, Inc., All rights reserved.
 #            Copyright (c) 2014, NovAtel Inc., All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
 #  * Redistributions of source code must retain the above copyright notice, this list of conditions and the
 #    following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the 
+#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
 #    following disclaimer in the documentation and/or other materials provided with the distribution.
 #  * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or promote
 #    products derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WAR-
 # RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 # PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, IN-
@@ -34,7 +34,7 @@ import tf
 #import pykdl_utils.kdl_parser #PyKDL
 
 # novatel node internal messages & modules
-from novatel_msgs.msg import * 
+from novatel_msgs.msg import *
 from novatel_generated_msgs.msg import AllMsgs
 from gps_utm import LLtoUTM
 
@@ -99,11 +99,11 @@ class novatelPublisher(object):
         self.imu_scale = { 'gyro':RAD(720.0/pow(2.0,31.0)), 'accel': 200.0/pow(2.0,31.0) } # ADIS16488
 
         # Topic publishers
-        self.pub_imu = rospy.Publisher('imu_data', Imu)
-        self.pub_odom = rospy.Publisher('gps_odom', Odometry)
-        self.pub_origin = rospy.Publisher('origin', Pose)
-        self.pub_navsatfix = rospy.Publisher('gps_fix', NavSatFix)
-        self.pub_navsatstatus = rospy.Publisher('gps_status', NavSatStatus)
+        self.pub_imu = rospy.Publisher('imu/data', Imu, queue_size=1)
+        self.pub_odom = rospy.Publisher('odom', Odometry, queue_size=1)
+        self.pub_origin = rospy.Publisher('origin', Pose, queue_size=1)
+        self.pub_navsatfix = rospy.Publisher('navsat/fix', NavSatFix, queue_size=1)
+        self.pub_navsatstatus = rospy.Publisher('navsat/status', NavSatStatus, queue_size=1)
         #self.pub_geomtwist = rospy.Publisher('cmd_vel', Twist)
 
         if self.publish_tf:
@@ -116,11 +116,11 @@ class novatelPublisher(object):
 
         self.init = False       # If we've been initialized
         self.origin = Point()   # Where we've started
-        
+
         # Subscribed topics
         all_msgs = AllMsgs()
         rospy.Subscriber('config', all_msgs.__class__, self.everything_handler)
-    
+
 
     def everything_handler(self, data):
       self.status_handler(data.bestpos)
@@ -150,13 +150,13 @@ class novatelPublisher(object):
         # If we don't have a fix, don't publish anything...
         if self.nav_status.status == NavSatStatus.STATUS_NO_FIX:
             return
-        
+
         # UTM conversion
         #(zone, easting, northing) = LLtoUTM(23, data.inspvax.latitude, data.inspvax.longitude)
-        easting, northing = data.bestxyz.easting, data.bestxyz.northing 
+        easting, northing = data.bestxyz.easting, data.bestxyz.northing
         # Initialize starting point if we haven't yet
         # TODO: Do we want to follow UTexas' lead and reinit to a nonzero point within the same UTM grid?
-        # TODO check INSPVAX sol stat for valid position before accepting 
+        # TODO check INSPVAX sol stat for valid position before accepting
         if not self.init and self.zero_start:
             self.origin.x = easting
             self.origin.y = northing
@@ -166,7 +166,7 @@ class novatelPublisher(object):
         p = Pose()
         p.position.x = self.origin.x
         p.position.y = self.origin.y
-        self.pub_origin.publish(p) 
+        self.pub_origin.publish(p)
 
         # IMU
         # TODO: Work out these covariances properly. Logs provide covariances in local frame, not body
@@ -174,9 +174,9 @@ class novatelPublisher(object):
         imu = Imu()
         imu.header.stamp == rospy.Time.now()
         imu.header.frame_id = self.base_frame
-      
+
         # Orientation
-        # orient=PyKDL.Rotation.RPY(RAD(data.roll),RAD(data.pitch),RAD(data.heading)).GetQuaternion() 
+        # orient=PyKDL.Rotation.RPY(RAD(data.roll),RAD(data.pitch),RAD(data.heading)).GetQuaternion()
         # imu.orientation = Quaternion(*orient)
         imu.orientation.x = data.inspvax.pitch
         imu.orientation.y = data.inspvax.roll
@@ -186,14 +186,14 @@ class novatelPublisher(object):
         IMU_ORIENT_COVAR[4] = POW(2,data.inspvax.roll_std)
         IMU_ORIENT_COVAR[8] = POW(2,data.inspvax.azimuth_std)
         imu.orientation_covariance = IMU_ORIENT_COVAR
-      
+
         # Angular rates
         # corrimudata log provides instantaneous rates so multiply by IMU rate in Hz
         imu.angular_velocity.x = DEG(data.corrimudata.pitch_rate*self.imu_rate)
         imu.angular_velocity.y = DEG(data.corrimudata.roll_rate*self.imu_rate)
         imu.angular_velocity.z = DEG(data.corrimudata.yaw_rate*self.imu_rate)
         imu.angular_velocity_covariance = IMU_VEL_COVAR
-      
+
         # Linear acceleration
         imu.linear_acceleration.x = data.corrimudata.x_accel*self.imu_rate
         imu.linear_acceleration.y = data.corrimudata.y_accel*self.imu_rate
@@ -204,7 +204,7 @@ class novatelPublisher(object):
 
 
         #
-        # Odometry 
+        # Odometry
         # TODO: Work out these covariances properly
         #
         odom = Odometry()
@@ -242,7 +242,7 @@ class novatelPublisher(object):
                  odom.pose.pose.position.z), odom.pose.pose.orientation, #Quaternion(*orient),
                  odom.header.stamp,odom.child_frame_id, odom.frame_id)
 
-        # 
+        #
         # NavSatFix
         # TODO: Work out these covariances properly from DOP
         #
@@ -260,9 +260,9 @@ class novatelPublisher(object):
 
         navsat.position_covariance = NAVSAT_COVAR
         navsat.position_covariance_type = NavSatFix.COVARIANCE_TYPE_DIAGONAL_KNOWN
-        
+
         self.pub_navsatfix.publish(navsat)
-        
+
         pass
 
     def status_handler(self, data):
@@ -276,7 +276,7 @@ class novatelPublisher(object):
             BESTPOSB.NARROWLANE: NavSatStatus.STATUS_FIX,
             BESTPOSB.DOPPLER_VELOCITY: NavSatStatus.STATUS_FIX,
             BESTPOSB.SINGLE: NavSatStatus.STATUS_FIX,
-            BESTPOSB.PSRDIFF: NavSatStatus.STATUS_GBAS_FIX, 
+            BESTPOSB.PSRDIFF: NavSatStatus.STATUS_GBAS_FIX,
             BESTPOSB.WAAS: NavSatStatus.STATUS_GBAS_FIX,
             BESTPOSB.PROPOGATED: NavSatStatus.STATUS_GBAS_FIX,
             BESTPOSB.OMNISTAR: NavSatStatus.STATUS_SBAS_FIX,
@@ -298,7 +298,7 @@ class novatelPublisher(object):
 
         # Assume GPS - this isn't exposed
         self.nav_status.service = NavSatStatus.SERVICE_GPS
-            
+
         self.pub_navsatstatus.publish(self.nav_status)
 
 def main():
