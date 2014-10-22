@@ -26,19 +26,10 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# ROS
-import roslib; roslib.load_manifest('novatel_publisher')
 import rospy
 import tf
-# no success installing KDL yet
-#import pykdl_utils.kdl_parser #PyKDL
 
-# novatel node internal messages & modules
 from novatel_msgs.msg import *
-from novatel_generated_msgs.msg import AllMsgs
-from gps_utm import LLtoUTM
-
-# ROS standard messages
 from sensor_msgs.msg import Imu, NavSatFix, NavSatStatus
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Quaternion, Point, Pose, Twist
@@ -83,8 +74,6 @@ TWIST_COVAR = [1, 0, 0, 0, 0, 0,
 class novatelPublisher(object):
 
     def __init__(self):
-        rospy.init_node('novatel_publisher')
-
         # Parameters
         self.publish_tf = rospy.get_param('~publish_tf', False)
         self.odom_frame = rospy.get_param('~odom_frame', 'odom_combined')
@@ -104,7 +93,6 @@ class novatelPublisher(object):
         self.pub_origin = rospy.Publisher('origin', Pose, queue_size=1)
         self.pub_navsatfix = rospy.Publisher('navsat/fix', NavSatFix, queue_size=1)
         self.pub_navsatstatus = rospy.Publisher('navsat/status', NavSatStatus, queue_size=1)
-        #self.pub_geomtwist = rospy.Publisher('cmd_vel', Twist)
 
         if self.publish_tf:
             self.tf_broadcast = tf.TransfromBroadcaster()
@@ -118,26 +106,11 @@ class novatelPublisher(object):
         self.origin = Point()   # Where we've started
 
         # Subscribed topics
-        all_msgs = AllMsgs()
-        rospy.Subscriber('config', all_msgs.__class__, self.everything_handler)
-
+        rospy.Subscriber('config', AllMsgs, self.everything_handler)
 
     def everything_handler(self, data):
       self.status_handler(data.bestpos)
       self.navigation_handler(data)
-      # self.turtle_handler(data.rawimu) # for demo
-
-    def turtle_handler(self, data):
-      # specifically for demonstrating control of turtlesim using IMU
-      twist = Twist()
-      twist.linear.x = -data.accy*self.imu_scale['accel']
-      twist.linear.y = 0
-      twist.linear.z = 0
-      twist.angular.x = 0
-      twist.angular.y = 0
-      twist.angular.z = data.gyrz*self.imu_scale['gyro']
-
-      self.pub_geomtwist.publish(twist)
 
     def navigation_handler(self, data):
         """ Rebroadcasts navigation data in the following formats:
@@ -152,11 +125,11 @@ class novatelPublisher(object):
             return
 
         # UTM conversion
-        #(zone, easting, northing) = LLtoUTM(23, data.inspvax.latitude, data.inspvax.longitude)
         easting, northing = data.bestxyz.easting, data.bestxyz.northing
+
         # Initialize starting point if we haven't yet
         # TODO: Do we want to follow UTexas' lead and reinit to a nonzero point within the same UTM grid?
-        # TODO check INSPVAX sol stat for valid position before accepting
+        # TODO: check INSPVAX sol stat for valid position before accepting
         if not self.init and self.zero_start:
             self.origin.x = easting
             self.origin.y = northing
@@ -170,7 +143,6 @@ class novatelPublisher(object):
 
         # IMU
         # TODO: Work out these covariances properly. Logs provide covariances in local frame, not body
-        #
         imu = Imu()
         imu.header.stamp == rospy.Time.now()
         imu.header.frame_id = self.base_frame
@@ -182,31 +154,28 @@ class novatelPublisher(object):
         imu.orientation.y = data.inspvax.roll
         imu.orientation.z = data.inspvax.azimuth
         imu.orientation.w = 0
-        IMU_ORIENT_COVAR[0] = POW(2,data.inspvax.pitch_std)
-        IMU_ORIENT_COVAR[4] = POW(2,data.inspvax.roll_std)
-        IMU_ORIENT_COVAR[8] = POW(2,data.inspvax.azimuth_std)
+        IMU_ORIENT_COVAR[0] = POW(2, data.inspvax.pitch_std)
+        IMU_ORIENT_COVAR[4] = POW(2, data.inspvax.roll_std)
+        IMU_ORIENT_COVAR[8] = POW(2, data.inspvax.azimuth_std)
         imu.orientation_covariance = IMU_ORIENT_COVAR
 
-        # Angular rates
+        # Angular rates (rad/s)
         # corrimudata log provides instantaneous rates so multiply by IMU rate in Hz
-        imu.angular_velocity.x = DEG(data.corrimudata.pitch_rate*self.imu_rate)
-        imu.angular_velocity.y = DEG(data.corrimudata.roll_rate*self.imu_rate)
-        imu.angular_velocity.z = DEG(data.corrimudata.yaw_rate*self.imu_rate)
+        imu.angular_velocity.x = data.corrimudata.pitch_rate * self.imu_rate
+        imu.angular_velocity.y = data.corrimudata.roll_rate * self.imu_rate
+        imu.angular_velocity.z = data.corrimudata.yaw_rate * self.imu_rate
         imu.angular_velocity_covariance = IMU_VEL_COVAR
 
-        # Linear acceleration
-        imu.linear_acceleration.x = data.corrimudata.x_accel*self.imu_rate
-        imu.linear_acceleration.y = data.corrimudata.y_accel*self.imu_rate
-        imu.linear_acceleration.z = data.corrimudata.z_accel*self.imu_rate
+        # Linear acceleration (m/s^2)
+        imu.linear_acceleration.x = data.corrimudata.x_accel * self.imu_rate
+        imu.linear_acceleration.y = data.corrimudata.y_accel * self.imu_rate
+        imu.linear_acceleration.z = data.corrimudata.z_accel * self.imu_rate
         imu.linear_acceleration_covariance = IMU_ACCEL_COVAR
 
         self.pub_imu.publish(imu)
 
-
-        #
         # Odometry
         # TODO: Work out these covariances properly
-        #
         odom = Odometry()
         odom.header.stamp = rospy.Time.now()
         odom.header.frame_id = self.odom_frame
@@ -250,20 +219,19 @@ class novatelPublisher(object):
         navsat.header.stamp = rospy.Time.now()
         navsat.header.frame_id = self.odom_frame
         navsat.status = self.nav_status
+
         # position, in degrees
         navsat.latitude  = data.bestpos.latitude
         navsat.longitude = data.bestpos.longitude
         navsat.altitude  = data.bestpos.altitude
-        NAVSAT_COVAR[0] = pow(2,data.bestpos.lat_std) # in meters
-        NAVSAT_COVAR[4] = pow(2,data.bestpos.lon_std)
-        NAVSAT_COVAR[8] = pow(2,data.bestpos.hgt_std)
+        NAVSAT_COVAR[0] = pow(2, data.bestpos.lat_std) # in meters
+        NAVSAT_COVAR[4] = pow(2, data.bestpos.lon_std)
+        NAVSAT_COVAR[8] = pow(2, data.bestpos.hgt_std)
 
         navsat.position_covariance = NAVSAT_COVAR
         navsat.position_covariance_type = NavSatFix.COVARIANCE_TYPE_DIAGONAL_KNOWN
 
         self.pub_navsatfix.publish(navsat)
-
-        pass
 
     def status_handler(self, data):
         """ Rebroadcasts GNSS status as a standard NavSatStatus message """
@@ -301,13 +269,3 @@ class novatelPublisher(object):
 
         self.pub_navsatstatus.publish(self.nav_status)
 
-def main():
-  node = novatelPublisher()
-  rospy.spin()
-
-
-if __name__ == '__main__':
-    try:
-        main()
-    except rospy.ROSInterruptException:
-        pass

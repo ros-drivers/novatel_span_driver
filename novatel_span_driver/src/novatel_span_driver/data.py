@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 
 # Software License Agreement (BSD)
-# 
+#
 #  file      @data.py
 #  authors   Mike Purvis <mpurvis@clearpathrobotics.com>
 #            NovAtel <novatel.com/support>
 #  copyright Copyright (c) 2012, Clearpath Robotics, Inc., All rights reserved.
 #            Copyright (c) 2014, NovAtel Inc., All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
 #  * Redistributions of source code must retain the above copyright notice, this list of conditions and the
 #    following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the 
+#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
 #    following disclaimer in the documentation and/or other materials provided with the distribution.
 #  * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or promote
 #    products derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WAR-
 # RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 # PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, IN-
@@ -26,34 +26,19 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# ROS
 import rospy
-
-# ROS messages
 import novatel_msgs.msg
-import novatel_generated_msgs.msg
-from novatel_generated_msgs.msg import AllMsgs
 
-# Node source
 from port import Port
-
-from roslib.packages import get_pkg_dir
-from os import path
-import imp
-msgs_dir = get_pkg_dir('novatel_msgs')
-msgs_filename = path.join(msgs_dir, "src", "mapping.py")
-mapping = imp.load_source('msgs', msgs_filename)
-msgs = mapping.msgs
-
+from novatel_span_driver.mapping import msgs
 from handlers import GroupHandler, MessageHandler
 import translator
 
-# Python
 from cStringIO import StringIO
 from threading import Lock
 
 def all_same(dict_):
-    # return true if all of the values in this dict are the same 
+    # return true if all of the values in this dict are the same
     # ignores those with values == 0
     vls = dict_.values()
     j = 0
@@ -64,19 +49,19 @@ def all_same(dict_):
       if vls[j] != vls[i] and vls[i] != 0 and vls[i] != None:
         return False
 
-    return True 
+    return True
 
 class DataPort(Port):
   ALLMSGS_SEND_TIMEOUT = rospy.Duration.from_sec(0.05)
 
   def run(self):
     # Aggregate message for republishing the sensor config as a single blob.
-    all_msgs = AllMsgs()
-    all_msgs_pub = rospy.Publisher("config", all_msgs.__class__, latch=True) 
+    all_msgs = novatel_msgs.msgs.AllMsgs()
+    all_msgs_pub = rospy.Publisher("config", all_msgs.__class__, latch=True)
 
     # Listener object which tracks what topics have been subscribed to.
     listener = SubscribeListenerManager()
-  
+
     # Set up handlers for translating different novatel messages as they arrive.
     handlers = {}
     pkt_counters = {}
@@ -120,7 +105,7 @@ class DataPort(Port):
           bad_pkts.add(pkt)
 
       if pkt_id not in pkt_counters:
-        pkt_counters[pkt_id] = 0  
+        pkt_counters[pkt_id] = 0
       else:
         pkt_counters[pkt_id] += 1
         pkt_times[pkt_id] = pkt_time # only track times of msgs that are part of novatel msgs
@@ -128,7 +113,7 @@ class DataPort(Port):
       # wait until all the msgs have the same GNSS time before sending
       if all_same(pkt_times):
         all_msgs_pub.publish(all_msgs)
-        all_msgs.last_sent = rospy.get_rostime() 
+        all_msgs.last_sent = rospy.get_rostime()
 
 
 class SubscribeListenerManager():

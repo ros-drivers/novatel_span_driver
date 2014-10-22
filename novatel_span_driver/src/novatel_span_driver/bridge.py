@@ -29,11 +29,12 @@
 # ROS
 import rospy
 from novatel_msgs.msg import *
+from std_msgs.msg import String
 
 # Package modules
-from data import DataPort
-from control import ControlPort
-from monitor import Monitor
+from novatel_span_driver.data import DataPort
+from novatel_span_driver.control import ControlPort
+from novatel_span_driver.monitor import Monitor
 
 # Standard
 import socket
@@ -42,10 +43,9 @@ import struct
 from cStringIO import StringIO
 import time
 
-import translator
-from handlers import NullHandler, GroupHandler, MessageHandler, AckHandler
+from novatel_span_driver import translator
+from novatel_span_driver.handlers import NullHandler, GroupHandler, MessageHandler, AckHandler
 
-from std_msgs.msg import String
 
 PORTS_DATA = {
     "realtime": 2000,
@@ -67,11 +67,7 @@ ports = {}
 monitor = Monitor(ports)
 
 
-def main():
-
-  print("starting bridge");
-  rospy.init_node('novatel_bridge')
-
+def init():
   # Where to find the device. It does not support DHCP, so you'll need
   # to connect initially to the factory default IP in order to change it.
   ip = rospy.get_param('ip', DEFAULT_IP)
@@ -81,14 +77,7 @@ def main():
   # freshness.
   data_port = PORTS_DATA[rospy.get_param('data', "realtime")]
 
-  # Disable this to not connect to the control socket (for example, if you
-  # want to control the device using novatel software rather
-  # than ROS-based services.
-  control_enabled = rospy.get_param('control', True)
-
-  rospy.loginfo("Inside Bridge")
-
-  # Disable any of these to hide auxiliary topics which you may not be
+# Disable any of these to hide auxiliary topics which you may not be
   # interested in.
   exclude_prefixes = []
   for prefix, default in PREFIX_DEFAULTS.items():
@@ -100,9 +89,7 @@ def main():
   pcap_file_name = rospy.get_param('pcap_file', False)
 
   if not pcap_file_name:
-    # To connect to serial instead of ethernet, just change the comments here
     sock = create_sock('data', ip, data_port)
-    #sock = create_serial('data', 115200, '/dev/ttyS0')
   else:
     sock = create_test_sock(pcap_file_name)
 
@@ -119,54 +106,7 @@ def main():
   monitor.start()
 
   rospy.on_shutdown(shutdown)
-  rospy.spin()
 
-def create_usb(name, port_):
-  # TODO: this hasnt been tested
-  usb = serial.Serial(
-     port=port_,
-     timeout=SOCKET_TIMEOUT)
-
-  if usb.isOpen():
-    usb.close()
-
-  try:
-    usb.open()
-    rospy.loginfo("Successfully connected to %%s port at %s" % port_ % name)
-  except usb.ValueError as e:
-    rospy.logfatal("%s" % str(e))
-  except serial.SerialException as e:
-    rospy.logfatal("Couldn't connect usb: %s: %%s" % port_ % str(e))
-
-  socks.append(usb)
-  return usb
-
-def create_serial(name, rate_, port_):
-  ser = serial.Serial(
-     port=port_,
-	  baudrate=rate_,
-	  parity=serial.PARITY_NONE,
-     bytesize=serial.EIGHTBITS,
-	  stopbits=serial.STOPBITS_ONE,
-     timeout=SOCKET_TIMEOUT/100,
-     rtscts=False,
-     dsrdtr=False,
-     xonxoff=False)
-
-  if ser.isOpen():
-    ser.close()
-
-  try:
-    ser.open()
-    rospy.loginfo("Successfully connected to %%s port at %s" % port_ % name)
-  except serial.ValueError as e:
-    rospy.logfatal("%s" % str(e))
-  except serial.SerialException as e:
-    rospy.logfatal("Couldn't connect serial: %s: %%s" % port_ % str(e))
-
-  ser.flushInput()
-  socks.append(ser)
-  return ser
 
 def create_sock(name, ip, port):
   try:
@@ -213,6 +153,7 @@ def create_test_sock(pcap_filename):
 
   return MockSocket()
 
+
 def configure_receiver(port):
   receiver_config = rospy.get_param('configuration')
   if receiver_config != None:
@@ -249,9 +190,3 @@ def shutdown():
       sock.shutdown(socket.SHUT_RDWR)
     sock.close()
   rospy.loginfo("Sockets closed.")
-
-if __name__ == '__main__':
-    try:
-        main()
-    except rospy.ROSInterruptException:
-        pass
