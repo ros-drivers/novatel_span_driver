@@ -83,7 +83,7 @@ class novatelPublisher(object):
         self.keep_az = 0 # want delta az not abs
         self.init_az = False # have we initialised the azimuth
 
-        self.imu_rate = rospy.get_param('rate')
+        self.imu_rate = rospy.get_param('~rate')
         # IMU scale factors, needed for RAWIMU log only
         self.imu_scale = { 'gyro':RAD(720.0/pow(2.0,31.0)), 'accel': 200.0/pow(2.0,31.0) } # ADIS16488
 

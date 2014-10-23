@@ -55,12 +55,8 @@ class DataPort(Port):
   ALLMSGS_SEND_TIMEOUT = rospy.Duration.from_sec(0.05)
 
   def run(self):
-    # Aggregate message for republishing the sensor config as a single blob.
-    all_msgs = novatel_msgs.msgs.AllMsgs()
-    all_msgs_pub = rospy.Publisher("config", all_msgs.__class__, latch=True)
-
-    # Listener object which tracks what topics have been subscribed to.
-    listener = SubscribeListenerManager()
+    all_msgs = novatel_msgs.msg.AllMsgs()
+    all_msgs_pub = rospy.Publisher("config", all_msgs.__class__, latch=True, queue_size=1)
 
     # Set up handlers for translating different novatel messages as they arrive.
     handlers = {}
@@ -89,7 +85,6 @@ class DataPort(Port):
 
       except KeyError as e:
         # No handler for this pkt_id. Only warn on the first sighting.
-        print("KEYERROR")
         rospy.logwarn(str(e))
 
         if pkt_id not in handlers:
@@ -115,32 +110,3 @@ class DataPort(Port):
         all_msgs_pub.publish(all_msgs)
         all_msgs.last_sent = rospy.get_rostime()
 
-
-class SubscribeListenerManager():
-  def __init__(self):
-    self.lock = Lock()
-    self.groups = set()
-    self.publisher = rospy.Publisher("subscribed_groups", novatel_msgs.msg.Groups, latch=True)
-    self.publish()
-
-  def publish(self):
-    self.publisher.publish(groups=list(self.groups))
-
-  def listener_for(self, group_num):
-    return self.Listener(self, group_num)
-
-  class Listener(rospy.SubscribeListener):
-    def __init__(self, manager, group_num):
-      self.manager = manager
-      self.group_num = group_num
-
-    def peer_subscribe(self, topic_name, topic_publish, peer_publish):
-      with self.manager.lock:
-        self.manager.groups.add(self.group_num)
-        self.manager.publish()
-
-    def peer_unsubscribe(self, topic_name, num_peers):
-      if num_peers == 0:
-        with self.lock:
-          self.manager.groups.discard(self.group_num)
-          self.manager.publish()

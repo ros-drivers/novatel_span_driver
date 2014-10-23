@@ -1,10 +1,12 @@
 <launch>
+  <arg name="ip" default="198.161.73.9" />
+  <arg name="port" default="3001" />
+
   <group ns="novatel">
     <node name="novatel_span_driver" pkg="novatel_span_driver" type="driver">
+      <param name="ip" value="$(arg ip)" />
+      <param name="port" value="$(arg port)" />
       <rosparam>
-        ip: 192.168.1.18
-        include_raw: false
-        control: false
         configuration:
           imu_connect: { port: com2, type: imu_imar_fsas }
           log_request: { inspvaxb: 0.1, corrimudatab: 0.1, inscovb: 0.1, bestposb: 0.1, bestxyzb: 0.1 }

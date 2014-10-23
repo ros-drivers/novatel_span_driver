@@ -40,3 +40,8 @@ msgs = {
     # 1232:("bestvel2", BESTVEL2),
     1465:("inspvax", INSPVAX)
 }
+
+for id in msgs:
+    name, Cls = msgs[id]
+    Cls.in_all_msgs = hasattr(AllMsgs, name)
+

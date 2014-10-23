@@ -33,7 +33,6 @@ from std_msgs.msg import String
 
 # Package modules
 from novatel_span_driver.data import DataPort
-from novatel_span_driver.control import ControlPort
 from novatel_span_driver.monitor import Monitor
 
 # Standard
@@ -46,20 +45,8 @@ import time
 from novatel_span_driver import translator
 from novatel_span_driver.handlers import NullHandler, GroupHandler, MessageHandler, AckHandler
 
-
-PORTS_DATA = {
-    "realtime": 2000,
-    "logging": 2000
-    }
-PORT_CONTROL = 2000
-
 DEFAULT_IP = '198.161.73.9'
-PREFIX_DEFAULTS = {
-    "raw": True,
-    "dmi": True,
-    "status": True,
-    "events": True
-    }
+DEFAULT_PORT = 3001
 
 SOCKET_TIMEOUT=100.0
 socks = []
@@ -68,35 +55,19 @@ monitor = Monitor(ports)
 
 
 def init():
-  # Where to find the device. It does not support DHCP, so you'll need
-  # to connect initially to the factory default IP in order to change it.
-  ip = rospy.get_param('ip', DEFAULT_IP)
-
-  # Select between realtime and logging data ports. The logging data is
-  # optimized for completeness, whereas the realtime data is optimized for
-  # freshness.
-  data_port = PORTS_DATA[rospy.get_param('data', "realtime")]
-
-# Disable any of these to hide auxiliary topics which you may not be
-  # interested in.
-  exclude_prefixes = []
-  for prefix, default in PREFIX_DEFAULTS.items():
-    if not rospy.get_param('include_%s' % prefix, default):
-      exclude_prefixes.append(prefix)
+  ip = rospy.get_param('~ip', DEFAULT_IP)
+  data_port = rospy.get_param('~port', DEFAULT_PORT)
 
   # Pass this parameter to use pcap data rather than a socket to a device.
   # For testing the node itself--to exercise downstream algorithms, use a bag.
-  pcap_file_name = rospy.get_param('pcap_file', False)
+  pcap_file_name = rospy.get_param('~pcap_file', False)
 
   if not pcap_file_name:
     sock = create_sock('data', ip, data_port)
   else:
     sock = create_test_sock(pcap_file_name)
 
-  ports['data'] = DataPort(sock, exclude_prefixes=exclude_prefixes)
-
-  if control_enabled:
-    ports['control'] = ControlPort(create_sock('control', ip, PORT_CONTROL))
+  ports['data'] = DataPort(sock)
 
   configure_receiver(sock)
 
@@ -155,7 +126,7 @@ def create_test_sock(pcap_filename):
 
 
 def configure_receiver(port):
-  receiver_config = rospy.get_param('configuration')
+  receiver_config = rospy.get_param('~configuration')
   if receiver_config != None:
 
     logger = receiver_config['log_request']
