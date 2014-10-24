@@ -2,20 +2,20 @@
 # -*- coding: utf-8 -*-
 
 # Software License Agreement (BSD)
-# 
+#
 #  file      @monitor.py
 #  authors   Mike Purvis <mpurvis@clearpathrobotics.com>
 #  copyright Copyright (c) 2012, Clearpath Robotics, Inc., All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
 #  * Redistributions of source code must retain the above copyright notice, this list of conditions and the
 #    following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the 
+#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
 #    following disclaimer in the documentation and/or other materials provided with the distribution.
 #  * Neither the name of Clearpath Robotics nor the names of its contributors may be used to endorse or promote
 #    products derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WAR-
 # RANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 # PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, IN-
@@ -27,16 +27,17 @@
 import rospy
 import threading
 
-class Monitor(threading.Thread):
-  def __init__(self, ports):
-    super(Monitor, self).__init__()
-    self.ports = ports
-    self.finish = threading.Event()
 
-  def run(self):
-    while not self.finish:
-      rospy.sleep(1.0)
-      for name, port in ports.items():
-        if not port.is_alive():
-          rospy.logerr("Port %s thread died. Signalling node shutdown." % name)
-          rospy.signal_shutdown("Node lost thread.")
+class Monitor(threading.Thread):
+    def __init__(self, ports):
+        super(Monitor, self).__init__()
+        self.ports = ports
+        self.finish = threading.Event()
+
+    def run(self):
+        while not self.finish:
+            rospy.sleep(1.0)
+            for name, port in ports.items():
+                if not port.is_alive():
+                    rospy.logerr("Port %s thread died. Signalling node shutdown." % name)
+                    rospy.signal_shutdown("Node lost thread.")

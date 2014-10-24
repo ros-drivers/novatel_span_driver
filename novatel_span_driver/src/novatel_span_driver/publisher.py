@@ -71,6 +71,7 @@ TWIST_COVAR = [1, 0, 0, 0, 0, 0,
                0, 0, 0, 0, 0.1, 0,
                0, 0, 0, 0, 0, 0.1]
 
+
 class novatelPublisher(object):
 
     def __init__(self):
@@ -78,14 +79,14 @@ class novatelPublisher(object):
         self.publish_tf = rospy.get_param('~publish_tf', False)
         self.odom_frame = rospy.get_param('~odom_frame', 'odom_combined')
         self.base_frame = rospy.get_param('~base_frame', 'base_footprint')
-        self.zero_start = rospy.get_param('~zero_start', False) # If this is True, UTM will be pub'd wrt. our first recv'd coordinate
+        self.zero_start = rospy.get_param('~zero_start', False)  # If this is True, UTM will be pub'd wrt. our first recv'd coordinate
 
-        self.keep_az = 0 # want delta az not abs
-        self.init_az = False # have we initialised the azimuth
+        self.keep_az = 0  # want delta az not abs
+        self.init_az = False  # have we initialised the azimuth
 
         self.imu_rate = rospy.get_param('~rate')
         # IMU scale factors, needed for RAWIMU log only
-        self.imu_scale = { 'gyro':RAD(720.0/pow(2.0,31.0)), 'accel': 200.0/pow(2.0,31.0) } # ADIS16488
+        self.imu_scale = {'gyro': RAD(720.0 / pow(2.0, 31.0)), 'accel': 200.0 / pow(2.0, 31.0)}  # ADIS16488
 
         # Topic publishers
         self.pub_imu = rospy.Publisher('imu/data', Imu, queue_size=1)
@@ -109,8 +110,8 @@ class novatelPublisher(object):
         rospy.Subscriber('config', AllMsgs, self.everything_handler)
 
     def everything_handler(self, data):
-      self.status_handler(data.bestpos)
-      self.navigation_handler(data)
+        self.status_handler(data.bestpos)
+        self.navigation_handler(data)
 
     def navigation_handler(self, data):
         """ Rebroadcasts navigation data in the following formats:
@@ -179,8 +180,8 @@ class novatelPublisher(object):
         odom = Odometry()
         odom.header.stamp = rospy.Time.now()
         odom.header.frame_id = self.odom_frame
-        odom.child_frame_id  = self.base_frame
-        odom.pose.pose.position.x = easting  - self.origin.x
+        odom.child_frame_id = self.base_frame
+        odom.pose.pose.position.x = easting - self.origin.x
         odom.pose.pose.position.y = northing - self.origin.y
         odom.pose.pose.position.z = data.inspvax.altitude
         #odom.pose.pose.orientation = Quaternion(*orient)
@@ -194,9 +195,9 @@ class novatelPublisher(object):
         odom.twist.twist.linear.x = data.bestxyz.velx
         odom.twist.twist.linear.y = data.bestxyz.vely
         odom.twist.twist.linear.z = data.bestxyz.velz
-        TWIST_COVAR[0]  = pow(2,data.bestxyz.velx_std)
-        TWIST_COVAR[7]  = pow(2,data.bestxyz.vely_std)
-        TWIST_COVAR[14] = pow(2,data.bestxyz.velz_std)
+        TWIST_COVAR[0] = pow(2, data.bestxyz.velx_std)
+        TWIST_COVAR[7] = pow(2, data.bestxyz.vely_std)
+        TWIST_COVAR[14] = pow(2, data.bestxyz.velz_std)
         odom.twist.twist.angular = imu.angular_velocity
         odom.twist.covariance = TWIST_COVAR
 
@@ -208,8 +209,8 @@ class novatelPublisher(object):
         if self.publish_tf:
             self.tf_broadcast.sendTransform(
                 (odom.pose.pose.position.x, odom.pose.pose.position.y,
-                 odom.pose.pose.position.z), odom.pose.pose.orientation, #Quaternion(*orient),
-                 odom.header.stamp,odom.child_frame_id, odom.frame_id)
+                 odom.pose.pose.position.z), odom.pose.pose.orientation,  # Quaternion(*orient),
+                 odom.header.stamp, odom.child_frame_id, odom.frame_id)
 
         #
         # NavSatFix
@@ -221,10 +222,10 @@ class novatelPublisher(object):
         navsat.status = self.nav_status
 
         # position, in degrees
-        navsat.latitude  = data.bestpos.latitude
+        navsat.latitude = data.bestpos.latitude
         navsat.longitude = data.bestpos.longitude
-        navsat.altitude  = data.bestpos.altitude
-        NAVSAT_COVAR[0] = pow(2, data.bestpos.lat_std) # in meters
+        navsat.altitude = data.bestpos.altitude
+        NAVSAT_COVAR[0] = pow(2, data.bestpos.lat_std)  # in meters
         NAVSAT_COVAR[4] = pow(2, data.bestpos.lon_std)
         NAVSAT_COVAR[8] = pow(2, data.bestpos.hgt_std)
 
@@ -262,10 +263,9 @@ class novatelPublisher(object):
             BESTPOSB.INS_RTKFIXED: NavSatStatus.STATUS_GBAS_FIX,
             }
 
-        self.nav_status.status = solution_map.get(data.pos_type,NavSatStatus.STATUS_NO_FIX)
+        self.nav_status.status = solution_map.get(data.pos_type, NavSatStatus.STATUS_NO_FIX)
 
         # Assume GPS - this isn't exposed
         self.nav_status.service = NavSatStatus.SERVICE_GPS
 
         self.pub_navsatstatus.publish(self.nav_status)
-

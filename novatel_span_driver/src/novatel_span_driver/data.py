@@ -37,69 +37,70 @@ import translator
 from cStringIO import StringIO
 from threading import Lock
 
+
 def all_same(dict_):
     # return true if all of the values in this dict are the same
     # ignores those with values == 0
     vls = dict_.values()
     j = 0
     while j < len(vls) and vls[j] == 0:
-      j+=1
+        j += 1
 
-    for i in range(j+1, len(vls)):
-      if vls[j] != vls[i] and vls[i] != 0 and vls[i] != None:
-        return False
+    for i in range(j + 1, len(vls)):
+        if vls[j] != vls[i] and vls[i] != 0 and vls[i] != None:
+            return False
 
     return True
 
+
 class DataPort(Port):
-  ALLMSGS_SEND_TIMEOUT = rospy.Duration.from_sec(0.05)
+    ALLMSGS_SEND_TIMEOUT = rospy.Duration.from_sec(0.05)
 
-  def run(self):
-    all_msgs = novatel_msgs.msg.AllMsgs()
-    all_msgs_pub = rospy.Publisher("config", all_msgs.__class__, latch=True, queue_size=1)
+    def run(self):
+        all_msgs = novatel_msgs.msg.AllMsgs()
+        all_msgs_pub = rospy.Publisher("config", all_msgs.__class__, latch=True, queue_size=1)
 
-    # Set up handlers for translating different novatel messages as they arrive.
-    handlers = {}
-    pkt_counters = {}
-    pkt_times = {}
+        # Set up handlers for translating different novatel messages as they arrive.
+        handlers = {}
+        pkt_counters = {}
+        pkt_times = {}
 
-    for msg_id in msgs.keys():
-      handlers[msg_id] = MessageHandler(*msgs[msg_id], all_msgs=all_msgs)
-      pkt_counters[msg_id] = 0
-      pkt_times[msg_id] = 0
+        for msg_id in msgs.keys():
+            handlers[msg_id] = MessageHandler(*msgs[msg_id], all_msgs=all_msgs)
+            pkt_counters[msg_id] = 0
+            pkt_times[msg_id] = 0
 
-    bad_pkts = set()
-    pkt_id = None
+        bad_pkts = set()
+        pkt_id = None
 
-    while not self.finish.is_set():
-      try:
-        pkt_id, pkt_str, pkt_time = self.recv()
-        if pkt_id != None:
-          handlers[pkt_id].handle(StringIO(pkt_str))
+        while not self.finish.is_set():
+            try:
+                pkt_id, pkt_str, pkt_time = self.recv()
+                if pkt_id != None:
+                    handlers[pkt_id].handle(StringIO(pkt_str))
 
-      except ValueError as e:
-        # Some problem in the recv() routine.
-        rospy.logwarn(str(e))
-        continue
+            except ValueError as e:
+                # Some problem in the recv() routine.
+                rospy.logwarn(str(e))
+                continue
 
-      except KeyError as e:
-        if pkt_id not in handlers and pkt_id not in pkt_counters:
-          rospy.logwarn("No handler for message id %d" % pkt_id)
-          #handlers[pkt_id] = MessageHandler(*msgs[pkt_id], all_msgs=all_msgs)
+            except KeyError as e:
+                if pkt_id not in handlers and pkt_id not in pkt_counters:
+                    rospy.logwarn("No handler for message id %d" % pkt_id)
+                    #handlers[pkt_id] = MessageHandler(*msgs[pkt_id], all_msgs=all_msgs)
 
-      except translator.TranslatorError:
-        if pkt_id not in bad_pkts:
-          rospy.logwarn("Error parsing %s.%d" % pkt_id)
-          bad_pkts.add(pkt)
+            except translator.TranslatorError:
+                if pkt_id not in bad_pkts:
+                    rospy.logwarn("Error parsing %s.%d" % pkt_id)
+                    bad_pkts.add(pkt)
 
-      if pkt_id not in pkt_counters:
-        pkt_counters[pkt_id] = 0
-      else:
-        pkt_counters[pkt_id] += 1
-        pkt_times[pkt_id] = pkt_time # only track times of msgs that are part of novatel msgs
+            if pkt_id not in pkt_counters:
+                pkt_counters[pkt_id] = 0
+            else:
+                pkt_counters[pkt_id] += 1
+                pkt_times[pkt_id] = pkt_time  # only track times of msgs that are part of novatel msgs
 
-      # wait until all the msgs have the same GNSS time before sending
-      if all_same(pkt_times):
-        all_msgs_pub.publish(all_msgs)
-        all_msgs.last_sent = rospy.get_rostime()
-
+            # wait until all the msgs have the same GNSS time before sending
+            if all_same(pkt_times):
+                all_msgs_pub.publish(all_msgs)
+                all_msgs.last_sent = rospy.get_rostime()

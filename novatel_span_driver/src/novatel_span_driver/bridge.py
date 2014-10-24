@@ -48,135 +48,138 @@ from novatel_span_driver.handlers import NullHandler, GroupHandler, MessageHandl
 DEFAULT_IP = '198.161.73.9'
 DEFAULT_PORT = 3001
 
-SOCKET_TIMEOUT=100.0
+SOCKET_TIMEOUT = 100.0
 socks = []
 ports = {}
 monitor = Monitor(ports)
 
 
 def init():
-  ip = rospy.get_param('~ip', DEFAULT_IP)
-  data_port = rospy.get_param('~port', DEFAULT_PORT)
+    ip = rospy.get_param('~ip', DEFAULT_IP)
+    data_port = rospy.get_param('~port', DEFAULT_PORT)
 
-  # Pass this parameter to use pcap data rather than a socket to a device.
-  # For testing the node itself--to exercise downstream algorithms, use a bag.
-  pcap_file_name = rospy.get_param('~pcap_file', False)
+    # Pass this parameter to use pcap data rather than a socket to a device.
+    # For testing the node itself--to exercise downstream algorithms, use a bag.
+    pcap_file_name = rospy.get_param('~pcap_file', False)
 
-  if not pcap_file_name:
-    sock = create_sock('data', ip, data_port)
-  else:
-    sock = create_test_sock(pcap_file_name)
+    if not pcap_file_name:
+        sock = create_sock('data', ip, data_port)
+    else:
+        sock = create_test_sock(pcap_file_name)
 
-  ports['data'] = DataPort(sock)
+    ports['data'] = DataPort(sock)
 
-  configure_receiver(sock)
+    configure_receiver(sock)
 
-  for name, port in ports.items():
-    port.start()
-    rospy.loginfo("Port %s thread started." % name)
-  monitor.start()
+    for name, port in ports.items():
+        port.start()
+        rospy.loginfo("Port %s thread started." % name)
+    monitor.start()
 
-  rospy.on_shutdown(shutdown)
+    rospy.on_shutdown(shutdown)
 
 
 def create_sock(name, ip, port):
-  try:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ip_port = (ip, port)
-    sock.connect(ip_port)
-    rospy.loginfo("Successfully connected to %%s port at %s:%d" % ip_port % name)
-  except socket.error as e:
-    rospy.logfatal("Couldn't connect to %%s port at %s:%d: %%s" % ip_port % (name, str(e)))
-    exit(1)
-  sock.settimeout(SOCKET_TIMEOUT)
-  socks.append(sock)
-  return sock
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        ip_port = (ip, port)
+        sock.connect(ip_port)
+        rospy.loginfo("Successfully connected to %%s port at %s:%d" % ip_port % name)
+    except socket.error as e:
+        rospy.logfatal("Couldn't connect to %%s port at %s:%d: %%s" % ip_port % (name, str(e)))
+        exit(1)
+    sock.settimeout(SOCKET_TIMEOUT)
+    socks.append(sock)
+    return sock
 
 
 def create_test_sock(pcap_filename):
-  rospy.sleep(0.1)
+    rospy.sleep(0.1)
 
-  try:
-    import pcapy
-  except ImportError:
-    import pure_pcapy as pcapy
-
-  from StringIO import StringIO
-  from impacket import ImpactDecoder
-
-  body_list = []
-  if pcap_filename.endswith("gz"):
-      # From: http://projects.honeynet.org/honeysnap/changeset/35/trunk/honeysnap/__init__.py
-      import tempfile, gzip
-      tmph, tmpf = tempfile.mkstemp()
-      tmph = open(tmpf, 'wb')
-      gfile = gzip.open(pcap_filename)
-      tmph.write(gfile.read())
-      gfile.close()
-      tmph.close()
-      pcap_filename = tmpf
-
-  cap = pcapy.open_offline(pcap_filename)
-  decoder = ImpactDecoder.EthDecoder()
-
-  while True:
-    header, payload = cap.next()
-    if not header: break
     try:
-      tcp = decoder.decode(payload).child().child()
-      body_list.append(tcp.child().get_packet())
-    except AttributeError:
-      print decoder.decode(payload)
-      raise
+        import pcapy
+    except ImportError:
+        import pure_pcapy as pcapy
 
-  data_io = StringIO(''.join(body_list))
+    from StringIO import StringIO
+    from impacket import ImpactDecoder
 
-  class MockSocket(object):
-    def recv(self, byte_count):
-      rospy.sleep(0.0002)
-      data = data_io.read(byte_count)
-      if data == "":
-        rospy.signal_shutdown("Test completed.")
-      return data
-    def settimeout(self, timeout):
-      pass
+    body_list = []
+    if pcap_filename.endswith("gz"):
+        # From: http://projects.honeynet.org/honeysnap/changeset/35/trunk/honeysnap/__init__.py
+        import tempfile
+        import gzip
+        tmph, tmpf = tempfile.mkstemp()
+        tmph = open(tmpf, 'wb')
+        gfile = gzip.open(pcap_filename)
+        tmph.write(gfile.read())
+        gfile.close()
+        tmph.close()
+        pcap_filename = tmpf
 
-  return MockSocket()
+    cap = pcapy.open_offline(pcap_filename)
+    decoder = ImpactDecoder.EthDecoder()
+
+    while True:
+        header, payload = cap.next()
+        if not header:
+            break
+        try:
+            tcp = decoder.decode(payload).child().child()
+            body_list.append(tcp.child().get_packet())
+        except AttributeError:
+            print decoder.decode(payload)
+            raise
+
+    data_io = StringIO(''.join(body_list))
+
+    class MockSocket(object):
+        def recv(self, byte_count):
+            rospy.sleep(0.0002)
+            data = data_io.read(byte_count)
+            if data == "":
+                rospy.signal_shutdown("Test completed.")
+            return data
+
+        def settimeout(self, timeout):
+            pass
+
+    return MockSocket()
 
 
 def configure_receiver(port):
-  receiver_config = rospy.get_param('~configuration', None)
+    receiver_config = rospy.get_param('~configuration', None)
 
-  if receiver_config != None:
-    logger = receiver_config['log_request']
-    imu_connect = receiver_config['imu_connect']
-    commands = receiver_config['command']
+    if receiver_config != None:
+        logger = receiver_config['log_request']
+        imu_connect = receiver_config['imu_connect']
+        commands = receiver_config['command']
 
-    if type(port) == type(serial.Serial()):
-      put = port.write
-    else:
-      put = port.send
+        if type(port) == type(serial.Serial()):
+            put = port.write
+        else:
+            put = port.send
 
-    if imu_connect != None:
-      put('connectimu '+imu_connect['port']+' '+imu_connect['type'] + '\r\n')
+        if imu_connect != None:
+            put('connectimu ' + imu_connect['port'] + ' ' + imu_connect['type'] + '\r\n')
 
-    for log in logger:
-      put('log ' + log + ' ontime ' + str(logger[log]) + '\r\n')
+        for log in logger:
+            put('log ' + log + ' ontime ' + str(logger[log]) + '\r\n')
 
-    for cmd in commands:
-      put(cmd + ' ' + commands[cmd] + '\r\n')
+        for cmd in commands:
+            put(cmd + ' ' + commands[cmd] + '\r\n')
 
 
 def shutdown():
-  monitor.finish.set()
-  monitor.join()
-  rospy.loginfo("Thread monitor finished.")
-  for name, port in ports.items():
-    port.finish.set()
-    port.join()
-    rospy.loginfo("Port %s thread finished." % name)
-  for sock in socks:
-    if type(sock) != type(serial.Serial()):
-      sock.shutdown(socket.SHUT_RDWR)
-    sock.close()
-  rospy.loginfo("Sockets closed.")
+    monitor.finish.set()
+    monitor.join()
+    rospy.loginfo("Thread monitor finished.")
+    for name, port in ports.items():
+        port.finish.set()
+        port.join()
+        rospy.loginfo("Port %s thread finished." % name)
+    for sock in socks:
+        if type(sock) != type(serial.Serial()):
+            sock.shutdown(socket.SHUT_RDWR)
+        sock.close()
+    rospy.loginfo("Sockets closed.")

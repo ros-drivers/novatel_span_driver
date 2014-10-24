@@ -26,22 +26,20 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 from novatel_msgs.msg import *
 
 msgs = {
     0: ("ack", Ack),
     42: ("bestpos", BESTPOSB),
-    241:("bestxyz", BESTXYZ),
-    264:("inscov", INSCOV),
+    241: ("bestxyz", BESTXYZ),
+    264: ("inscov", INSCOV),
     # 268:("rawimu", RAWIMU),
     # 507:("inspva", INSPVA),
     812: ("corrimudata", CORRIMUDATA),
     # 1232:("bestvel2", BESTVEL2),
-    1465:("inspvax", INSPVAX)
+    1465: ("inspvax", INSPVAX)
 }
 
 for id in msgs:
     name, Cls = msgs[id]
     Cls.in_all_msgs = hasattr(AllMsgs, name)
-

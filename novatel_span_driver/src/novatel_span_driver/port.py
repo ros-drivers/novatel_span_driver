@@ -39,116 +39,115 @@ import struct
 import serial
 from cStringIO import StringIO
 
+
 class Port(threading.Thread):
-  """ Common base class for DataPort and ControlPort. Provides functionality to
+    """ Common base class for DataPort and ControlPort. Provides functionality to
       recv/send novatel-formatted packets from the socket. Could in future
       support LoggingPort and DisplayPort."""
-  checksum_struct = struct.Struct("<hh")
+    checksum_struct = struct.Struct("<hh")
 
-  def __init__(self, sock, **opts):
-    super(Port, self).__init__()
-    self.sock = sock
-    self.opts = opts
-    self.daemon = False
-    self.finish = threading.Event()
-    self.bSerial = False
+    def __init__(self, sock, **opts):
+        super(Port, self).__init__()
+        self.sock = sock
+        self.opts = opts
+        self.daemon = False
+        self.finish = threading.Event()
+        self.bSerial = False
 
-    # These are only for receiving.
-    self.header = msg.CommonHeader()
-    self.footer = msg.CommonFooter()
+        # These are only for receiving.
+        self.header = msg.CommonHeader()
+        self.footer = msg.CommonFooter()
 
-  def recv(self, d=False):
-    """ Receive a packet from the port's socket.
+    def recv(self, d=False):
+        """ Receive a packet from the port's socket.
         Returns (pkt_id, pkt_str, pkt_time), where pkt_id is ("$GRP"|"$MSG", num)
         Returns None, None when no data. """
 
-    try:
-        bytes_before_sync = 0
-        while True:
+        try:
+            bytes_before_sync = 0
+            while True:
+                sync = self.sock.recv(1)
+                if sync == "\xAA":
+                    if bytes_before_sync > 0:
+                        rospy.logwarn("Discarded %d bytes between end of previous message and next sync byte." % bytes_before_sync)
+                    break
+                bytes_before_sync += 1
+
             sync = self.sock.recv(1)
-            if sync == "\xAA":
-                if bytes_before_sync > 0:
-                    rospy.logwarn("Discarded %d bytes between end of previous message and next sync byte." % bytes_before_sync)
-                break
-            bytes_before_sync += 1
+            if sync != "\x44":
+                raise ValueError("Bad sync2 byte, expected 0x44, received 0x%x" % ord(sync[0]))
+            sync = self.sock.recv(1)
+            if sync != "\x12":
+                raise ValueError("Bad sync3 byte, expected 0x12, received 0x%x" % ord(sync[0]))
 
-        sync = self.sock.recv(1)
-        if sync != "\x44":
-            raise ValueError("Bad sync2 byte, expected 0x44, received 0x%x" % ord(sync[0]))
-        sync = self.sock.recv(1)
-        if sync != "\x12":
-            raise ValueError("Bad sync3 byte, expected 0x12, received 0x%x" % ord(sync[0]))
-
-        # Four byte offset to account for 3 sync bytes and one header length byte already consumed.
-        header_length = ord(self.sock.recv(1)[0]) - 4
-        if header_length != self.header.translator().size:
-            raise ValueError("Bad header length. Expected %d, got %d" %
+            # Four byte offset to account for 3 sync bytes and one header length byte already consumed.
+            header_length = ord(self.sock.recv(1)[0]) - 4
+            if header_length != self.header.translator().size:
+                raise ValueError("Bad header length. Expected %d, got %d" %
                     (self.header.translator().size, header_length))
 
-    except socket.timeout:
-      return None, None, None
+        except socket.timeout:
+            return None, None, None
 
-    header_str = self.sock.recv(header_length)
-    header_data = StringIO(header_str)
-    self.header.translator().deserialize(header_data)
+        header_str = self.sock.recv(header_length)
+        header_data = StringIO(header_str)
+        self.header.translator().deserialize(header_data)
 
-    packet_str = self.sock.recv(self.header.length)
-    footer_data = StringIO(self.sock.recv(self.footer.translator().size))
+        packet_str = self.sock.recv(self.header.length)
+        footer_data = StringIO(self.sock.recv(self.footer.translator().size))
 
-    return self.header.id, packet_str, self.header.gpssec
+        return self.header.id, packet_str, self.header.gpssec
 
-  def send(self, header, message):
-    """ Sends a header/msg/footer out the socket. Takes care of computing
+    def send(self, header, message):
+        """ Sends a header/msg/footer out the socket. Takes care of computing
         length field for header and checksum field for footer. """
 
-    msg_buff = StringIO()
-    message.translator().preserialize()
-    message.translator().serialize(msg_buff)
-    pad_count = -msg_buff.tell() % 4
-    msg_buff.write("\x00" * pad_count)
+        msg_buff = StringIO()
+        message.translator().preserialize()
+        message.translator().serialize(msg_buff)
+        pad_count = -msg_buff.tell() % 4
+        msg_buff.write("\x00" * pad_count)
 
-    footer = msg.CommonFooter(end=msg.CommonFooter.END)
-    header.length = msg_buff.tell() + footer.translator().size
+        footer = msg.CommonFooter(end=msg.CommonFooter.END)
+        header.length = msg_buff.tell() + footer.translator().size
 
-    # Write header and message to main buffer.
-    buff = StringIO()
-    header.translator().serialize(buff)
-    buff.write(msg_buff.getvalue())
+        # Write header and message to main buffer.
+        buff = StringIO()
+        header.translator().serialize(buff)
+        buff.write(msg_buff.getvalue())
 
-    # Write footer.
-    footer_start = buff.tell()
-    footer.translator().serialize(buff)
+        # Write footer.
+        footer_start = buff.tell()
+        footer.translator().serialize(buff)
 
-    # Compute checksum.
-    buff.seek(0)
-    footer.checksum = 65536 - self._checksum(buff)
+        # Compute checksum.
+        buff.seek(0)
+        footer.checksum = 65536 - self._checksum(buff)
 
-    # Rewrite footer with correct checksum.
-    buff.seek(footer_start)
-    footer.translator().serialize(buff)
+        # Rewrite footer with correct checksum.
+        buff.seek(footer_start)
+        footer.translator().serialize(buff)
 
-    self.sock.send(buff.getvalue())
+        self.sock.send(buff.getvalue())
 
-  @classmethod
-  def _checksum(cls, buff):
-    """ Compute novatel checksum. Expects a StringIO with a
+    @classmethod
+    def _checksum(cls, buff):
+        """ Compute novatel checksum. Expects a StringIO with a
       size that is a multiple of four bytes. """
-    checksum = 0
+        checksum = 0
 
 
-    while True:
-      data = buff.read(cls.checksum_struct.size)
+        while True:
+            data = buff.read(cls.checksum_struct.size)
 
-      if len(data) == 0:
-        break
-      if len(data) < 4:
-        pad_count = len(data) % 4
-        data = data + "\x00" * pad_count
-        raise ValueError("Checksum data length is not a multiple of 4. %d" % len(data))
-      print(data)
-      c1, c2 = cls.checksum_struct.unpack(data)
-      checksum += c1 + c2
-    print(checksum, checksum % 65536) # novatel 32 bit crc
-    return checksum % 65536
-
-
+            if len(data) == 0:
+                break
+            if len(data) < 4:
+                pad_count = len(data) % 4
+                data = data + "\x00" * pad_count
+                raise ValueError("Checksum data length is not a multiple of 4. %d" % len(data))
+            print(data)
+            c1, c2 = cls.checksum_struct.unpack(data)
+            checksum += c1 + c2
+        print(checksum, checksum % 65536)  # novatel 32 bit crc
+        return checksum % 65536
