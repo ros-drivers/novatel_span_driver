@@ -1,29 +1,23 @@
-string START_MESSAGE=170
+# On the wire, this header is preceeded by three sync bytes,
+# which are 0xAA 0x44 0x12, and a uint8 which is the header length.
 
-uint8 start
-uint8 sync2
-uint8 sync3
+# Message ID of the log being output.
+uint16 id
 
-uint8 hdr_length   # header length
-uint16 id #=93
+# Measurement source, format, response bit.
 uint8 msg_type
 
 uint8 port_addr
-uint8 length       #=72
-uint8 sequence     # ushort
+uint8 length
+uint8 sequence
 
 uint16 idle_time   # float
-uint16 time_stat   # enum
+uint16 time_stat
 
-uint16 week        # ushort
-int32 gpssec       # GPSsec
+uint16 week
+int32 gpssec
 
-uint32 rcvrstat    # ulong
-uint16 reserved_h  # ushort
-uint16 version_sw  # ushort 
-
-
-
-
-
+uint32 rcvrstat
+uint16 reserved_h
+uint16 version_sw
 

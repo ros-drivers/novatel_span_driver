@@ -62,34 +62,40 @@ class Port(threading.Thread):
         Returns (pkt_id, pkt_str, pkt_time), where pkt_id is ("$GRP"|"$MSG", num)
         Returns None, None when no data. """
 
-    if type(self.sock) == type(serial.Serial()):
-       pkt_id, pkt_str, pkt_time = self.recv_serial()
-       return pkt_id, pkt_str, pkt_time
-
     try:
-      header_str = self.sock.recv(self.header.translator().size)
+        bytes_before_sync = 0
+        while True:
+            sync = self.sock.recv(1)
+            if sync == "\xAA":
+                if bytes_before_sync > 0:
+                    rospy.logwarn("Discarded %d bytes between end of previous message and next sync byte." % bytes_before_sync)
+                break
+            bytes_before_sync += 1
+
+        sync = self.sock.recv(1)
+        if sync != "\x44":
+            raise ValueError("Bad sync2 byte, expected 0x44, received 0x%x" % ord(sync[0]))
+        sync = self.sock.recv(1)
+        if sync != "\x12":
+            raise ValueError("Bad sync3 byte, expected 0x12, received 0x%x" % ord(sync[0]))
+
+        # Four byte offset to account for 3 sync bytes and one header length byte already consumed.
+        header_length = ord(self.sock.recv(1)[0]) - 4
+        if header_length != self.header.translator().size:
+            raise ValueError("Bad header length. Expected %d, got %d" %
+                    (self.header.translator().size, header_length))
+
     except socket.timeout:
       return None, None, None
 
+    header_str = self.sock.recv(header_length)
     header_data = StringIO(header_str)
     self.header.translator().deserialize(header_data)
-    pkt_id = (str(self.header.start).encode('string_escape'), self.header.id)
 
-    # Initial sanity check.
-    #if pkt_id[0] != msg.CommonHeader.START_MESSAGE:
-    #  raise ValueError("Bad header %s.%s %%s" % pkt_id % bytes(msg.CommonHeader.START_MESSAGE))
-
-    pkt_str = self.sock.recv(self.header.length)  #translator().size)
+    packet_str = self.sock.recv(self.header.length)
     footer_data = StringIO(self.sock.recv(self.footer.translator().size))
 
-    # footer and checksum checks
-    #self.footer.translator().deserialize(footer_data)
-
-    # Check package checksum.
-    #if self._checksum(StringIO(header_str + pkt_str)) != 0:  #
-    #  raise ValueError("Bad checksum from pkt %s.%d" % pkt_id )# % checksum)
-
-    return pkt_id, pkt_str, self.header.gpssec
+    return self.header.id, packet_str, self.header.gpssec
 
   def send(self, header, message):
     """ Sends a header/msg/footer out the socket. Takes care of computing

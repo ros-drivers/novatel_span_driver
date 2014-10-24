@@ -96,25 +96,44 @@ def create_sock(name, ip, port):
 def create_test_sock(pcap_filename):
   rospy.sleep(0.1)
 
-  import pcapy
+  try:
+    import pcapy
+  except ImportError:
+    import pure_pcapy as pcapy
+
   from StringIO import StringIO
   from impacket import ImpactDecoder
 
   body_list = []
+  if pcap_filename.endswith("gz"):
+      # From: http://projects.honeynet.org/honeysnap/changeset/35/trunk/honeysnap/__init__.py
+      import tempfile, gzip
+      tmph, tmpf = tempfile.mkstemp()
+      tmph = open(tmpf, 'wb')
+      gfile = gzip.open(pcap_filename)
+      tmph.write(gfile.read())
+      gfile.close()
+      tmph.close()
+      pcap_filename = tmpf
+
   cap = pcapy.open_offline(pcap_filename)
   decoder = ImpactDecoder.EthDecoder()
 
   while True:
     header, payload = cap.next()
     if not header: break
-    udp = decoder.decode(payload).child().child()
-    body_list.append(udp.child().get_packet())
+    try:
+      tcp = decoder.decode(payload).child().child()
+      body_list.append(tcp.child().get_packet())
+    except AttributeError:
+      print decoder.decode(payload)
+      raise
 
   data_io = StringIO(''.join(body_list))
 
   class MockSocket(object):
     def recv(self, byte_count):
-      rospy.sleep(0.0001)
+      rospy.sleep(0.0002)
       data = data_io.read(byte_count)
       if data == "":
         rospy.signal_shutdown("Test completed.")
@@ -126,9 +145,9 @@ def create_test_sock(pcap_filename):
 
 
 def configure_receiver(port):
-  receiver_config = rospy.get_param('~configuration')
-  if receiver_config != None:
+  receiver_config = rospy.get_param('~configuration', None)
 
+  if receiver_config != None:
     logger = receiver_config['log_request']
     imu_connect = receiver_config['imu_connect']
     commands = receiver_config['command']

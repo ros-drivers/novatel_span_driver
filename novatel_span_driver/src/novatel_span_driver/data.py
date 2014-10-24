@@ -63,11 +63,10 @@ class DataPort(Port):
     pkt_counters = {}
     pkt_times = {}
 
-    for msg_num in msgs.keys():
-      handlers[(novatel_msgs.msg.CommonHeader.START_MESSAGE, msg_num)] = \
-          MessageHandler(*msgs[msg_num], all_msgs=all_msgs)
-      pkt_counters[(novatel_msgs.msg.CommonHeader.START_MESSAGE, msg_num)] = 0
-      pkt_times[(novatel_msgs.msg.CommonHeader.START_MESSAGE, msg_num)] = 0
+    for msg_id in msgs.keys():
+      handlers[msg_id] = MessageHandler(*msgs[msg_id], all_msgs=all_msgs)
+      pkt_counters[msg_id] = 0
+      pkt_times[msg_id] = 0
 
     bad_pkts = set()
     pkt_id = None
@@ -84,15 +83,9 @@ class DataPort(Port):
         continue
 
       except KeyError as e:
-        # No handler for this pkt_id. Only warn on the first sighting.
-        rospy.logwarn(str(e))
-
-        if pkt_id not in handlers:
-          rospy.logwarn("Uninitialised Handler")
-          handlers[pkt_id] = MessageHandler(*msgs[msg_num], all_msgs=all_msgs)
-
-        if pkt_id not in pkt_counters:
-            rospy.logwarn("Unhandled packet")
+        if pkt_id not in handlers and pkt_id not in pkt_counters:
+          rospy.logwarn("No handler for message id %d" % pkt_id)
+          #handlers[pkt_id] = MessageHandler(*msgs[pkt_id], all_msgs=all_msgs)
 
       except translator.TranslatorError:
         if pkt_id not in bad_pkts:
