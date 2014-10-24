@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(novatel_span_driver)
 
-find_package(catkin REQUIRED COMPONENTS rospy roslint)
+find_package(catkin REQUIRED COMPONENTS roslaunch roslint)
 
 catkin_python_setup()
 
@@ -16,3 +16,5 @@ install(DIRECTORY launch
 
 roslint_python()
 roslint_add_test()
+
+roslaunch_add_file_check(launch/example.launch)
