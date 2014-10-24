@@ -27,6 +27,9 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import roslib
+import roslib.message
+import roslib.msgs
+
 import genpy
 import rospy
 import struct
@@ -77,9 +80,9 @@ class FixedFieldsHandler(Handler):
                     raise
 
         struct_strs.extend([pattern(f) for f in fields])
-    self.struct = struct.Struct(''.join(struct_strs))
-    self.names = [f.name for f in fields]
-    self.size = self.struct.size
+        self.struct = struct.Struct(''.join(struct_strs))
+        self.names = [f.name for f in fields]
+        self.size = self.struct.size
 
     def serialize(self, buff, msg):
         buff.write(self.struct.pack(*[getattr(msg, name) for name in self.names]))

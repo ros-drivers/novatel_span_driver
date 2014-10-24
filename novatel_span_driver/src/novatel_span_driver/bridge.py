@@ -135,7 +135,7 @@ def create_test_sock(pcap_filename):
 
     class MockSocket(object):
         def recv(self, byte_count):
-            rospy.sleep(0.0002)
+            rospy.sleep(0.002)
             data = data_io.read(byte_count)
             if data == "":
                 rospy.signal_shutdown("Test completed.")

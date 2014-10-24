@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(novatel_span_driver)
 
-find_package(catkin REQUIRED COMPONENTS roslaunch roslint)
+find_package(catkin REQUIRED COMPONENTS roslaunch roslint rostest)
 
 catkin_python_setup()
 
@@ -15,6 +15,12 @@ install(DIRECTORY launch
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 roslint_python()
-roslint_add_test()
 
-roslaunch_add_file_check(launch/example.launch)
+
+if(CATKIN_TESTING_ENABLED)
+  add_rostest(test/propak6-basic-fix.test)
+
+  roslaunch_add_file_check(launch/example.launch)
+
+  roslint_add_test()
+endif()
