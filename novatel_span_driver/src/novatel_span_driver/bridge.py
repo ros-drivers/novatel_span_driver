@@ -150,7 +150,7 @@ def create_test_sock(pcap_filename):
 def configure_receiver(port):
     receiver_config = rospy.get_param('~configuration', None)
 
-    if receiver_config != None:
+    if receiver_config is not None:
         logger = receiver_config['log_request']
         imu_connect = receiver_config['imu_connect']
         commands = receiver_config['command']
@@ -160,7 +160,7 @@ def configure_receiver(port):
         else:
             put = port.send
 
-        if imu_connect != None:
+        if imu_connect is not None:
             put('connectimu ' + imu_connect['port'] + ' ' + imu_connect['type'] + '\r\n')
 
         for log in logger:

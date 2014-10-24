@@ -65,7 +65,8 @@ class SubMessageHandler(Handler):
 class FixedFieldsHandler(Handler):
     def __init__(self, fields):
         struct_strs = ['<']
-  # serial vs ethernet
+
+        # serial vs ethernet
         def pattern(field):
             try:
                 return genpy.base.SIMPLE_TYPES_DICT[field.type]
@@ -152,7 +153,7 @@ class Translator:
 
         fixed_fields = []
         for field in spec.parsed_fields():
-            if genpy.base.is_simple(field.base_type) and (field.array_len != None or not field.is_array):
+            if genpy.base.is_simple(field.base_type) and (field.array_len is not None or not field.is_array):
                 # Simple types and fixed-length character arrays.
                 fixed_fields.append(field)
             else:

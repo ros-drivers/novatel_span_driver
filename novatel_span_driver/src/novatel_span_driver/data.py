@@ -47,7 +47,7 @@ def all_same(dict_):
         j += 1
 
     for i in range(j + 1, len(vls)):
-        if vls[j] != vls[i] and vls[i] != 0 and vls[i] != None:
+        if vls[j] != vls[i] and vls[i] != 0 and vls[i] is not None:
             return False
 
     return True
@@ -76,7 +76,7 @@ class DataPort(Port):
         while not self.finish.is_set():
             try:
                 pkt_id, pkt_str, pkt_time = self.recv()
-                if pkt_id != None:
+                if pkt_id is not None:
                     handlers[pkt_id].handle(StringIO(pkt_str))
 
             except ValueError as e:

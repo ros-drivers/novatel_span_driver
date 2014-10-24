@@ -69,7 +69,8 @@ class Port(threading.Thread):
                 sync = self.sock.recv(1)
                 if sync == "\xAA":
                     if bytes_before_sync > 0:
-                        rospy.logwarn("Discarded %d bytes between end of previous message and next sync byte." % bytes_before_sync)
+                        rospy.logwarn("Discarded %d bytes between end of previous message " +
+                                      "and next sync byte." % bytes_before_sync)
                     break
                 bytes_before_sync += 1
 
@@ -84,7 +85,7 @@ class Port(threading.Thread):
             header_length = ord(self.sock.recv(1)[0]) - 4
             if header_length != self.header.translator().size:
                 raise ValueError("Bad header length. Expected %d, got %d" %
-                    (self.header.translator().size, header_length))
+                                 (self.header.translator().size, header_length))
 
         except socket.timeout:
             return None, None, None
@@ -135,7 +136,6 @@ class Port(threading.Thread):
         """ Compute novatel checksum. Expects a StringIO with a
       size that is a multiple of four bytes. """
         checksum = 0
-
 
         while True:
             data = buff.read(cls.checksum_struct.size)

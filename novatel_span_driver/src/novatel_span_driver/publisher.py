@@ -79,7 +79,9 @@ class novatelPublisher(object):
         self.publish_tf = rospy.get_param('~publish_tf', False)
         self.odom_frame = rospy.get_param('~odom_frame', 'odom_combined')
         self.base_frame = rospy.get_param('~base_frame', 'base_footprint')
-        self.zero_start = rospy.get_param('~zero_start', False)  # If this is True, UTM will be pub'd wrt. our first recv'd coordinate
+
+        # If True, UTM odom pose will be pub'd wrt. our first recv'd coordinate
+        self.zero_start = rospy.get_param('~zero_start', False)
 
         self.keep_az = 0  # want delta az not abs
         self.init_az = False  # have we initialised the azimuth
@@ -209,8 +211,9 @@ class novatelPublisher(object):
         if self.publish_tf:
             self.tf_broadcast.sendTransform(
                 (odom.pose.pose.position.x, odom.pose.pose.position.y,
-                 odom.pose.pose.position.z), odom.pose.pose.orientation,  # Quaternion(*orient),
-                 odom.header.stamp, odom.child_frame_id, odom.frame_id)
+                 odom.pose.pose.position.z),
+                odom.pose.pose.orientation,  # Quaternion(*orient),
+                odom.header.stamp, odom.child_frame_id, odom.frame_id)
 
         #
         # NavSatFix
