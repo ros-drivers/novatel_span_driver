@@ -92,8 +92,8 @@ class novatelPublisher(object):
 
         # Topic publishers
         self.pub_imu = rospy.Publisher('imu/data', Imu, queue_size=1)
-        self.pub_odom = rospy.Publisher('odom', Odometry, queue_size=1)
-        self.pub_origin = rospy.Publisher('origin', Pose, queue_size=1)
+        self.pub_odom = rospy.Publisher('navsat/odom', Odometry, queue_size=1)
+        self.pub_origin = rospy.Publisher('navsat/origin', Pose, queue_size=1)
         self.pub_navsatfix = rospy.Publisher('navsat/fix', NavSatFix, queue_size=1)
         self.pub_navsatstatus = rospy.Publisher('navsat/status', NavSatStatus, queue_size=1)
 
@@ -109,7 +109,7 @@ class novatelPublisher(object):
         self.origin = Point()   # Where we've started
 
         # Subscribed topics
-        rospy.Subscriber('config', AllMsgs, self.everything_handler)
+        rospy.Subscriber('navsat/novatel_data', AllMsgs, self.everything_handler)
 
     def everything_handler(self, data):
         self.status_handler(data.bestpos)

@@ -58,7 +58,7 @@ class DataPort(Port):
 
     def run(self):
         all_msgs = novatel_msgs.msg.AllMsgs()
-        all_msgs_pub = rospy.Publisher("config", all_msgs.__class__, latch=True, queue_size=1)
+        all_msgs_pub = rospy.Publisher("navsat/novatel_data", all_msgs.__class__, latch=True, queue_size=1)
 
         # Set up handlers for translating different novatel messages as they arrive.
         handlers = {}
