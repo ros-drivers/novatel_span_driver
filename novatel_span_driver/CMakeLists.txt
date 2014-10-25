@@ -17,7 +17,7 @@ install(DIRECTORY launch
 roslint_python()
 
 
-if(CATKIN_TESTING_ENABLED)
+if(CATKIN_ENABLE_TESTING)
   add_rostest(test/propak6-basic-fix.test)
 
   roslaunch_add_file_check(launch/example.launch)
