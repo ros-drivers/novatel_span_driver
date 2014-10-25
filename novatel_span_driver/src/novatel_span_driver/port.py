@@ -36,7 +36,6 @@ from translator import Translator
 import threading
 import socket
 import struct
-import serial
 from cStringIO import StringIO
 
 

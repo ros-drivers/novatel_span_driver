@@ -37,7 +37,6 @@ from novatel_span_driver.monitor import Monitor
 
 # Standard
 import socket
-import serial
 import struct
 from cStringIO import StringIO
 import time
@@ -155,19 +154,14 @@ def configure_receiver(port):
         imu_connect = receiver_config['imu_connect']
         commands = receiver_config['command']
 
-        if type(port) == type(serial.Serial()):
-            put = port.write
-        else:
-            put = port.send
-
         if imu_connect is not None:
-            put('connectimu ' + imu_connect['port'] + ' ' + imu_connect['type'] + '\r\n')
+            sock.send('connectimu ' + imu_connect['port'] + ' ' + imu_connect['type'] + '\r\n')
 
         for log in logger:
-            put('log ' + log + ' ontime ' + str(logger[log]) + '\r\n')
+            sock.send('log ' + log + ' ontime ' + str(logger[log]) + '\r\n')
 
         for cmd in commands:
-            put(cmd + ' ' + commands[cmd] + '\r\n')
+            sock.send(cmd + ' ' + commands[cmd] + '\r\n')
 
 
 def shutdown():
@@ -179,7 +173,6 @@ def shutdown():
         port.join()
         rospy.loginfo("Port %s thread finished." % name)
     for sock in socks:
-        if type(sock) != type(serial.Serial()):
-            sock.shutdown(socket.SHUT_RDWR)
+        sock.shutdown(socket.SHUT_RDWR)
         sock.close()
     rospy.loginfo("Sockets closed.")
