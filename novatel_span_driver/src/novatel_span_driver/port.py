@@ -68,8 +68,8 @@ class Port(threading.Thread):
                 sync = self.sock.recv(1)
                 if sync == "\xAA":
                     if bytes_before_sync > 0:
-                        rospy.logwarn("Discarded %d bytes between end of previous message " +
-                                      "and next sync byte." % bytes_before_sync)
+                        rospy.logwarn(("Discarded %d bytes between end of previous message " +
+                                      "and next sync byte.") % bytes_before_sync)
                     break
                 bytes_before_sync += 1
 

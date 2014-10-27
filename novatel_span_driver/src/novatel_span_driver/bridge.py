@@ -155,13 +155,13 @@ def configure_receiver(port):
         commands = receiver_config['command']
 
         if imu_connect is not None:
-            sock.send('connectimu ' + imu_connect['port'] + ' ' + imu_connect['type'] + '\r\n')
+            port.send('connectimu ' + imu_connect['port'] + ' ' + imu_connect['type'] + '\r\n')
 
         for log in logger:
-            sock.send('log ' + log + ' ontime ' + str(logger[log]) + '\r\n')
+            port.send('log ' + log + ' ontime ' + str(logger[log]) + '\r\n')
 
         for cmd in commands:
-            sock.send(cmd + ' ' + commands[cmd] + '\r\n')
+            port.send(cmd + ' ' + commands[cmd] + '\r\n')
 
 
 def shutdown():
