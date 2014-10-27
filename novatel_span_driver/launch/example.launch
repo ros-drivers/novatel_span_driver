@@ -2,17 +2,19 @@
   <arg name="ip" default="198.161.73.9" />
   <arg name="port" default="3001" />
 
-  <group ns="novatel">
-    <node name="novatel_span_driver" pkg="novatel_span_driver" type="driver">
-      <param name="ip" value="$(arg ip)" />
-      <param name="port" value="$(arg port)" />
-      <rosparam>
-        configuration:
-          imu_connect: { port: com2, type: imu_imar_fsas }
-          log_request: { inspvaxb: 0.1, corrimudatab: 0.1, inscovb: 0.1, bestposb: 0.1, bestxyzb: 0.1 }
-          command: { setinitattitude: 0 0 0 3 3 10 }
-        rate: 200 <!-- data rate of the IMU impacts some logs -->
-      </rosparam>
-    </node>
-  </group>
+  <node name="novatel_span_driver" pkg="novatel_span_driver" type="driver">
+    <param name="ip" value="$(arg ip)" />
+    <param name="port" value="$(arg port)" />
+    <rosparam ns="configuration">
+      log_request:
+        inspvaxb: 0.1
+        inscovb: 0.1
+        bestposb: 0.02
+        bestxyzb: 0.02
+        corrimudatab: 0.02
+      command:
+        setinitattitude: 0 0 0 3 3 10
+    </rosparam>
+    <param name="rate" value="200" />
+  </node>
 </launch>

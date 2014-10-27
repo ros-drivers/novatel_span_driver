@@ -109,11 +109,8 @@ class novatelPublisher(object):
         self.origin = Point()   # Where we've started
 
         # Subscribed topics
-        rospy.Subscriber('navsat/novatel_data', AllMsgs, self.everything_handler)
-
-    def everything_handler(self, data):
-        self.status_handler(data.bestpos)
-        self.navigation_handler(data)
+        rospy.Subscriber('novatel_data/bestpos', BESTPOSB, self.status_handler)
+        rospy.Subscriber('novatel_data/bestxyz', BESTXYZ, self.navigation_handler)
 
     def navigation_handler(self, data):
         """ Rebroadcasts navigation data in the following formats:

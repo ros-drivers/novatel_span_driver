@@ -42,30 +42,14 @@ class NullHandler(Handler):
         pass
 
 
-class GroupHandler(Handler):
-    def __init__(self, name, data_class, listener):
-        self.publisher = rospy.Publisher(name, data_class, subscriber_listener=listener)
+class MessageHandler(Handler):
+    def __init__(self, name, data_class):
+        self.publisher = rospy.Publisher("novatel_data/" + name, data_class)
         self.message = self.publisher.data_class()
 
     def handle(self, buff):
         self.message.translator().deserialize(buff)
         self.publisher.publish(self.message)
-
-
-class MessageHandler(Handler):
-    def __init__(self, name, data_class, all_msgs):
-        self.name = name
-        if data_class.in_all_msgs:
-            self.message = getattr(all_msgs, name)
-        else:
-            self.message = data_class()
-
-        # Keep a reference to the all_msgs aggregate message.
-        self.all_msgs = all_msgs
-
-    def handle(self, buff):
-        self.message.translator().deserialize(buff)
-        self.all_msgs.last_changed = rospy.get_rostime()
 
 
 class AckHandler(Handler):
