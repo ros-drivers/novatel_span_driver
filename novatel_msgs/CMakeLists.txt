@@ -11,11 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   Ack.msg
-  AllMsgs.msg
   CommonFooter.msg
   CommonHeader.msg
   BESTPOSB.msg
-  BESTXYZ.msg
   CORRIMUDATA.msg
   INSCOV.msg
   INSPVAX.msg 

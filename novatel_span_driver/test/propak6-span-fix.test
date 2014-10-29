@@ -1,11 +1,12 @@
 <launch>
   <node name="novatel_span_driver" pkg="novatel_span_driver" type="driver">
-    <param name="pcap_file" value="$(find novatel_span_driver)/test/propak6-basic-fix.pcap.gz" />
+    <param name="pcap_file" value="$(find novatel_span_driver)/test/propak6-span-fix.pcap.gz" />
     <param name="rate" value="200" />
   </node>
+
   <test test-name="hztest_test" pkg="rostest" type="hztest" name="hztest">
     <rosparam>
-      topic: /navsat/fix
+      topic: /navsat/odom
       hz: 10.0
       hzerror: 5.0
       test_duration: 5.0

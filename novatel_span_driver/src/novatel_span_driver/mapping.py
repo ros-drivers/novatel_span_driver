@@ -31,15 +31,7 @@ from novatel_msgs.msg import *
 msgs = {
     0: ("ack", Ack),
     42: ("bestpos", BESTPOSB),
-    241: ("bestxyz", BESTXYZ),
     264: ("inscov", INSCOV),
-    # 268:("rawimu", RAWIMU),
-    # 507:("inspva", INSPVA),
     812: ("corrimudata", CORRIMUDATA),
-    # 1232:("bestvel2", BESTVEL2),
     1465: ("inspvax", INSPVAX)
 }
-
-for id in msgs:
-    name, Cls = msgs[id]
-    Cls.in_all_msgs = hasattr(AllMsgs, name)

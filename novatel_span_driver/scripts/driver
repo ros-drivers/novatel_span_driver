@@ -32,7 +32,7 @@ from novatel_span_driver import publisher
 
 def main():
     rospy.init_node('novatel_span_driver')
-    pub = publisher.novatelPublisher()
+    pub = publisher.NovatelPublisher()
     bridge.init()
     rospy.spin()
 

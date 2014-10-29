@@ -7,11 +7,10 @@
     <param name="port" value="$(arg port)" />
     <rosparam ns="configuration">
       log_request:
-        inspvaxb: 0.1
-        inscovb: 0.1
+        inspvaxb: 0.02
         bestposb: 0.02
-        bestxyzb: 0.02
         corrimudatab: 0.02
+        inscovb: 1
       command:
         setinitattitude: 0 0 0 3 3 10
     </rosparam>
