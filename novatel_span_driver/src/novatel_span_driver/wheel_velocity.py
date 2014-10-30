@@ -28,6 +28,7 @@
 
 import rospy
 from nav_msgs.msg import Odometry
+from math import pi
 
 
 class NovatelWheelVelocity(object):
@@ -48,29 +49,29 @@ class NovatelWheelVelocity(object):
         self.latency = rospy.get_param("~wheel_velocity_latency", 100)
 
         # Send setup command.
-        self.circumference = self.fake_wheel_diameter * math.pi
-        cmd = 'setwheelparameters %d %f %f' %
-                    (self.fake_wheel_ticks,
-                     self.circumference,
-                     self.circumference / self.fake_wheel_ticks)
+        self.circumference = self.fake_wheel_diameter * pi
+        cmd = 'setwheelparameters %d %f %f' % (
+                self.fake_wheel_ticks,
+                self.circumference,
+                self.circumference / self.fake_wheel_ticks)
 
-        rospy.loginfo("Sending: %s" % cmd)
+        rospy.logdebug("Sending: %s" % cmd)
 
         self.cumulative_ticks = 0
         rospy.Subscriber('odom', Odometry, self.odom_handler)
 
     def odom_handler(self, odom):
         # Robot's linear velocity in m/s.
-        velocity = odom.twist.twist.linear.x
+        velocity = abs(odom.twist.twist.linear.x)
         self.cumulative_ticks += velocity * self.fake_wheel_ticks / self.circumference
 
-        cmd = 'wheelvelocity %d %d %d 0 %f 0 0 %d \r\n' %
-            (self.latency,
-             self.fake_wheel_ticks,
-             int(velocity),
-             velocity,
-             cumulative_ticks)
+        cmd = 'wheelvelocity %d %d %d 0 %f 0 0 %d \r\n' % (
+                self.latency,
+                self.fake_wheel_ticks,
+                int(velocity),
+                velocity,
+                self.cumulative_ticks)
 
-        rospy.loginfo("Sending: %s" % cmd)
+        rospy.logdebug("Sending: %s" % cmd)
 
         self.port.send(cmd)

@@ -151,13 +151,16 @@ def configure_receiver(port):
     if receiver_config is not None:
         imu_connect = receiver_config.get('imu_connect', None)
         if imu_connect is not None:
+            rospy.loginfo("Sending IMU connection string to SPAN system.")
             port.send('connectimu ' + imu_connect['port'] + ' ' + imu_connect['type'] + '\r\n')
 
         logger = receiver_config.get('log_request', [])
+        rospy.loginfo("Enabling %i log outputs from SPAN system." % len(logger))
         for log in logger:
             port.send('log ' + log + ' ontime ' + str(logger[log]) + '\r\n')
 
         commands = receiver_config.get('command', [])
+        rospy.loginfo("Sending %i user-specified initialization commands to SPAN system." % len(commands))
         for cmd in commands:
             port.send(cmd + ' ' + str(commands[cmd]) + '\r\n')
 

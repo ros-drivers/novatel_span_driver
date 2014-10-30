@@ -63,15 +63,17 @@ class Port(threading.Thread):
         Returns None, None when no data. """
 
         try:
-            bytes_before_sync = 0
+            bytes_before_sync = []
             while True:
                 sync = self.sock.recv(1)
                 if sync == "\xAA":
-                    if bytes_before_sync > 0:
+                    bytes_before_sync = ''.join(bytes_before_sync)
+                    if len(bytes_before_sync) > 0 and not bytes_before_sync.startswith("\r\n<OK"):
                         rospy.logwarn(("Discarded %d bytes between end of previous message " +
-                                      "and next sync byte.") % bytes_before_sync)
+                                      "and next sync byte.") % len(bytes_before_sync))
+                        rospy.logwarn("Discarded: %s" % repr(bytes_before_sync))
                     break
-                bytes_before_sync += 1
+                bytes_before_sync.append(sync)
 
             sync = self.sock.recv(1)
             if sync != "\x44":
