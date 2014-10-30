@@ -78,4 +78,3 @@ class DataPort(Port):
             else:
                 pkt_counters[pkt_id] += 1
                 pkt_times[pkt_id] = pkt_time  # only track times of msgs that are part of novatel msgs
-

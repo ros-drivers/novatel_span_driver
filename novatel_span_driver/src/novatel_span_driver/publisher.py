@@ -240,9 +240,6 @@ class NovatelPublisher(object):
 
         self.pub_imu.publish(imu)
 
-
     def inscov_handler(self, inscov):
         # TODO: Supply this data in the IMU and Odometry messages.
         pass
-
-
