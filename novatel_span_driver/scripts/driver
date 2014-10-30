@@ -28,11 +28,14 @@ import rospy
 
 from novatel_span_driver import bridge
 from novatel_span_driver import publisher
+from novatel_span_driver import wheel_velocity
 
 
 def main():
     rospy.init_node('novatel_span_driver')
     pub = publisher.NovatelPublisher()
+    if rospy.get_param('~enable_wheel_velocity', False):
+        vel = wheel_velocity.NovatelWheelVelocity()
     bridge.init()
     rospy.spin()
 
