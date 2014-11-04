@@ -51,9 +51,9 @@ class NovatelWheelVelocity(object):
         # Send setup command.
         self.circumference = self.fake_wheel_diameter * pi
         cmd = 'setwheelparameters %d %f %f' % (
-                self.fake_wheel_ticks,
-                self.circumference,
-                self.circumference / self.fake_wheel_ticks)
+            self.fake_wheel_ticks,
+            self.circumference,
+            self.circumference / self.fake_wheel_ticks)
 
         rospy.logdebug("Sending: %s" % cmd)
 
@@ -66,11 +66,11 @@ class NovatelWheelVelocity(object):
         self.cumulative_ticks += velocity * self.fake_wheel_ticks / self.circumference
 
         cmd = 'wheelvelocity %d %d %d 0 %f 0 0 %d \r\n' % (
-                self.latency,
-                self.fake_wheel_ticks,
-                int(velocity),
-                velocity,
-                self.cumulative_ticks)
+            self.latency,
+            self.fake_wheel_ticks,
+            int(velocity),
+            velocity,
+            self.cumulative_ticks)
 
         rospy.logdebug("Sending: %s" % cmd)
 
