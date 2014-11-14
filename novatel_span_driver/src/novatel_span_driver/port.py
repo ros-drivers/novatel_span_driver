@@ -53,14 +53,13 @@ class Port(threading.Thread):
         self.finish = threading.Event()
         self.bSerial = False
 
-        # These are only for receiving.
-        self.header = msg.CommonHeader()
-        self.footer = msg.CommonFooter()
-
     def recv(self, d=False):
         """ Receive a packet from the port's socket.
-        Returns (pkt_id, pkt_str, pkt_time), where pkt_id is ("$GRP"|"$MSG", num)
+        Returns (header, pkt_str)
         Returns None, None when no data. """
+
+        header = msg.CommonHeader()
+        footer = msg.CommonFooter()
 
         try:
             bytes_before_sync = []
@@ -84,21 +83,21 @@ class Port(threading.Thread):
 
             # Four byte offset to account for 3 sync bytes and one header length byte already consumed.
             header_length = ord(self.sock.recv(1)[0]) - 4
-            if header_length != self.header.translator().size:
+            if header_length != header.translator().size:
                 raise ValueError("Bad header length. Expected %d, got %d" %
-                                 (self.header.translator().size, header_length))
+                                 (header.translator().size, header_length))
 
         except socket.timeout:
-            return None, None, None
+            return None, None
 
         header_str = self.sock.recv(header_length)
         header_data = StringIO(header_str)
-        self.header.translator().deserialize(header_data)
+        header.translator().deserialize(header_data)
 
-        packet_str = self.sock.recv(self.header.length)
-        footer_data = StringIO(self.sock.recv(self.footer.translator().size))
+        packet_str = self.sock.recv(header.length)
+        footer_data = StringIO(self.sock.recv(footer.translator().size))
 
-        return self.header.id, packet_str, self.header.gpssec
+        return header, packet_str
 
     def send(self, header, message):
         """ Sends a header/msg/footer out the socket. Takes care of computing

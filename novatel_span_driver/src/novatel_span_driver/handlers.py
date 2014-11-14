@@ -33,13 +33,8 @@ from novatel_msgs.msg import Ack
 
 
 class Handler:
-    def handle(self, data):
+    def handle(self, buff, header):
         raise NotImplementedError
-
-
-class NullHandler(Handler):
-    def handle(self, data):
-        pass
 
 
 class MessageHandler(Handler):
@@ -47,14 +42,8 @@ class MessageHandler(Handler):
         self.publisher = rospy.Publisher("novatel_data/" + name, data_class, queue_size=1)
         self.message = self.publisher.data_class()
 
-    def handle(self, buff):
+    def handle(self, buff, header):
         self.message.translator().deserialize(buff)
+        self.message.header = header
         self.publisher.publish(self.message)
 
-
-class AckHandler(Handler):
-    def __init__(self):
-        self.message = Ack()
-
-    def handle(self, buff):
-        self.message.translator().deserialize(buff)

@@ -156,6 +156,10 @@ class Translator:
 
         fixed_fields = []
         for field in spec.parsed_fields():
+            if field.type == 'novatel_msgs/CommonHeader':
+                # Deserializing the header happens elsewhere.
+                continue
+
             if genpy.base.is_simple(field.base_type) and (field.array_len is not None or not field.is_array):
                 # Simple types and fixed-length character arrays.
                 fixed_fields.append(field)

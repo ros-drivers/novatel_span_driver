@@ -1,7 +1,9 @@
 <launch>
   <node name="novatel_span_driver" pkg="novatel_span_driver" type="driver">
-    <param name="pcap_file" value="$(find novatel_span_driver)/test/propak6-span-fix.pcap.gz" />
-    <param name="rate" value="200" />
+    <param name="pcap_file" value="$(find novatel_span_driver)/test/propak6-sbas-fix.pcap.gz" />
+    <param name="publish_tf" value="true" />
+    <param name="rate" value="100" />
+    <param name="zero_start" value="true" />
   </node>
 
   <test test-name="hztest_test" pkg="rostest" type="hztest" name="hztest">

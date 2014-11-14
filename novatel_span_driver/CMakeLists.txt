@@ -19,7 +19,7 @@ roslint_python()
 
 if(CATKIN_ENABLE_TESTING)
   add_rostest(test/propak6-basic-fix.test)
-  add_rostest(test/propak6-span-fix.test)
+  add_rostest(test/propak6-sbas-fix.test)
 
   roslaunch_add_file_check(launch/example.launch)
 

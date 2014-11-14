@@ -1,4 +1,5 @@
 # message 1465
+novatel_msgs/CommonHeader header
 
 float64 gpssec=0
 

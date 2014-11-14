@@ -1,4 +1,5 @@
 # message 264
+novatel_msgs/CommonHeader header
 
 int32 week
 float64 gpssec

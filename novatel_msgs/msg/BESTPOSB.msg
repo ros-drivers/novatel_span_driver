@@ -1,4 +1,5 @@
 # message 42
+novatel_msgs/CommonHeader header
 
 uint8 NONE=0        
 uint8 FIXED=1       

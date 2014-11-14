@@ -8,16 +8,16 @@ uint16 id
 uint8 msg_type
 
 uint8 port_addr
-uint8 length
-uint8 sequence
+uint16 length
+uint16 sequence
 
-uint16 idle_time   # float
-uint16 time_stat
+uint8 idle_time
+uint8 time_status
 
-uint16 week
-int32 gpssec
+uint16 gps_week
+uint32 gps_week_seconds
 
-uint32 rcvrstat
-uint16 reserved_h
-uint16 version_sw
+uint32 receiver_status
+uint16 reserved
+uint16 software_version
 
