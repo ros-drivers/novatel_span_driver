@@ -170,7 +170,7 @@ class NovatelPublisher(object):
         if not self.init and self.zero_start:
             self.origin.x = utm_pos.easting
             self.origin.y = utm_pos.northing
-            self.origin.z = -inspvax.altitude
+            self.origin.z = inspvax.altitude
             self.pub_origin.publish(position=self.origin)
 
         odom = Odometry()
@@ -179,7 +179,7 @@ class NovatelPublisher(object):
         odom.child_frame_id = self.base_frame
         odom.pose.pose.position.x = utm_pos.easting - self.origin.x
         odom.pose.pose.position.y = utm_pos.northing - self.origin.y
-        odom.pose.pose.position.z = -inspvax.altitude - self.origin.z
+        odom.pose.pose.position.z = inspvax.altitude - self.origin.z
 
         # Orientation
         # Save this on an instance variable, so that it can be published
