@@ -3,9 +3,11 @@
 
 # Software License Agreement (BSD)
 #
-#  file      driver
+#  file      @publisher.py
 #  authors   Mike Purvis <mpurvis@clearpathrobotics.com>
-#  copyright Copyright (c) 2014, Clearpath Robotics, Inc., All rights reserved.
+#            NovAtel <novatel.com/support>
+#  copyright Copyright (c) 2012, Clearpath Robotics, Inc., All rights reserved.
+#            Copyright (c) 2014, NovAtel Inc., All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -25,30 +27,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import rospy
+import diagnostic_updater
 
-from novatel_span_driver import bridge
-from novatel_span_driver import diagnostics
-from novatel_span_driver import publisher
-from novatel_span_driver import wheel_velocity
+from novatel_msgs.msg import BESTPOS, INSPVAX
 
-
-def main():
-    rospy.init_node('novatel_span_driver')
-
-    bridge.init()
-
-    pub = publisher.NovatelPublisher()
-
-    diag = diagnostics.NovatelDiagnostics()
-
-    if rospy.get_param('~enable_wheel_velocity', False):
-        vel = wheel_velocity.NovatelWheelVelocity(bridge.ports['data'].sock)
-
-    rospy.spin()
-
-
-if __name__ == '__main__':
-    try:
-        main()
-    except rospy.ROSInterruptException:
-        pass
+class NovatelDiagnostics(object):
+    def __init__(self):
+        self.updater = diagnostic_updater.Updater()

@@ -30,7 +30,7 @@ import rospy
 import tf
 import geodesy.utm
 
-from novatel_msgs.msg import *
+from novatel_msgs.msg import BESTPOS, CORRIMUDATA, INSCOV, INSPVAX
 from sensor_msgs.msg import Imu, NavSatFix, NavSatStatus
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Quaternion, Point, Pose, Twist
@@ -102,7 +102,7 @@ class NovatelPublisher(object):
         self.orientation_covariance = IMU_ORIENT_COVAR
 
         # Subscribed topics
-        rospy.Subscriber('novatel_data/bestpos', BESTPOSB, self.bestpos_handler)
+        rospy.Subscriber('novatel_data/bestpos', BESTPOS, self.bestpos_handler)
         rospy.Subscriber('novatel_data/corrimudata', CORRIMUDATA, self.corrimudata_handler)
         rospy.Subscriber('novatel_data/inscov', INSCOV, self.inscov_handler)
         rospy.Subscriber('novatel_data/inspvax', INSPVAX, self.inspvax_handler)
@@ -117,33 +117,43 @@ class NovatelPublisher(object):
         # Assume GPS - this isn't exposed
         navsat.status.service = NavSatStatus.SERVICE_GPS
 
-        solution_map = {
-            BESTPOSB.NONE: NavSatStatus.STATUS_NO_FIX,
-            BESTPOSB.FIXED: NavSatStatus.STATUS_FIX,
-            BESTPOSB.FIXEDHEIGHT: NavSatStatus.STATUS_FIX,
-            BESTPOSB.FLOATCONV: NavSatStatus.STATUS_FIX,
-            BESTPOSB.WIDELANE: NavSatStatus.STATUS_FIX,
-            BESTPOSB.NARROWLANE: NavSatStatus.STATUS_FIX,
-            BESTPOSB.DOPPLER_VELOCITY: NavSatStatus.STATUS_FIX,
-            BESTPOSB.SINGLE: NavSatStatus.STATUS_FIX,
-            BESTPOSB.PSRDIFF: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.WAAS: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.PROPOGATED: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.OMNISTAR: NavSatStatus.STATUS_SBAS_FIX,
-            BESTPOSB.L1_FLOAT: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.IONOFREE_FLOAT: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.NARROW_FLOAT: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.L1_INT: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.WIDE_INT: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.NARROW_INT: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.RTK_DIRECT_INS: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.INS_SBAS: NavSatStatus.STATUS_SBAS_FIX,
-            BESTPOSB.INS_PSRSP: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.INS_PSRDIFF: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.INS_RTKFLOAT: NavSatStatus.STATUS_GBAS_FIX,
-            BESTPOSB.INS_RTKFIXED: NavSatStatus.STATUS_GBAS_FIX,
+        position_type_to_status = {
+            BESTPOS.POSITION_TYPE_NONE: NavSatStatus.STATUS_NO_FIX,
+            BESTPOS.POSITION_TYPE_FIXED: NavSatStatus.STATUS_FIX,
+            BESTPOS.POSITION_TYPE_FIXEDHEIGHT: NavSatStatus.STATUS_FIX,
+            BESTPOS.POSITION_TYPE_FLOATCONV: NavSatStatus.STATUS_FIX,
+            BESTPOS.POSITION_TYPE_WIDELANE: NavSatStatus.STATUS_FIX,
+            BESTPOS.POSITION_TYPE_NARROWLANE: NavSatStatus.STATUS_FIX,
+            BESTPOS.POSITION_TYPE_DOPPLER_VELOCITY: NavSatStatus.STATUS_FIX,
+            BESTPOS.POSITION_TYPE_SINGLE: NavSatStatus.STATUS_FIX,
+            BESTPOS.POSITION_TYPE_PSRDIFF: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_WAAS: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_PROPAGATED: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_OMNISTAR: NavSatStatus.STATUS_SBAS_FIX,
+            BESTPOS.POSITION_TYPE_L1_FLOAT: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_IONOFREE_FLOAT: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_NARROW_FLOAT: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_L1_INT: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_WIDE_INT: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_NARROW_INT: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_RTK_DIRECT_INS: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_INS_SBAS: NavSatStatus.STATUS_SBAS_FIX,
+            BESTPOS.POSITION_TYPE_INS_PSRSP: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_INS_PSRDIFF: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_INS_RTKFLOAT: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_INS_RTKFIXED: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_INS_OMNISTAR: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_INS_OMNISTAR_HP: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_INS_OMNISTAR_XP: NavSatStatus.STATUS_GBAS_FIX,
+            BESTPOS.POSITION_TYPE_OMNISTAR_HP: NavSatStatus.STATUS_SBAS_FIX,
+            BESTPOS.POSITION_TYPE_OMNISTAR_XP: NavSatStatus.STATUS_SBAS_FIX,
+            BESTPOS.POSITION_TYPE_PPP_CONVERGING: NavSatStatus.STATUS_SBAS_FIX,
+            BESTPOS.POSITION_TYPE_PPP: NavSatStatus.STATUS_SBAS_FIX,
+            BESTPOS.POSITION_TYPE_INS_PPP_CONVERGING: NavSatStatus.STATUS_SBAS_FIX,
+            BESTPOS.POSITION_TYPE_INS_PPP: NavSatStatus.STATUS_SBAS_FIX,
             }
-        navsat.status.status = solution_map.get(bestpos.pos_type, NavSatStatus.STATUS_NO_FIX)
+        navsat.status.status = position_type_to_status.get(bestpos.position_type,
+                                                           NavSatStatus.STATUS_NO_FIX)
 
         # Position in degrees.
         navsat.latitude = bestpos.latitude
@@ -151,12 +161,12 @@ class NovatelPublisher(object):
 
         # Altitude in metres.
         navsat.altitude = bestpos.altitude
-        navsat.position_covariance[0] = pow(2, bestpos.lat_std)
-        navsat.position_covariance[4] = pow(2, bestpos.lon_std)
-        navsat.position_covariance[8] = pow(2, bestpos.hgt_std)
+        navsat.position_covariance[0] = pow(2, bestpos.latitude_std)
+        navsat.position_covariance[4] = pow(2, bestpos.longitude_std)
+        navsat.position_covariance[8] = pow(2, bestpos.altitude_std)
         navsat.position_covariance_type = NavSatFix.COVARIANCE_TYPE_DIAGONAL_KNOWN
 
-        # Ship it.
+        # Ship ito
         self.pub_navsatfix.publish(navsat)
 
     def inspvax_handler(self, inspvax):

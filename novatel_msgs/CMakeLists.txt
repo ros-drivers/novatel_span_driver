@@ -13,7 +13,7 @@ add_message_files(
   Ack.msg
   CommonFooter.msg
   CommonHeader.msg
-  BESTPOSB.msg
+  BESTPOS.msg
   CORRIMUDATA.msg
   INSCOV.msg
   INSPVAX.msg 
