@@ -1,8 +1,6 @@
 # message 1465
 novatel_msgs/CommonHeader header
 
-float64 gpssec=0
-
 # Table 29 in the SPAN on OEM6 manual:
 # See: http://www.novatel.com/assets/Documents/Manuals/OM-20000144UM.pdf#page=121
 uint32 ins_status
@@ -36,9 +34,9 @@ float64 altitude
 
 float32 undulation
 
-float64 velx
-float64 vely
-float64 velz
+float64 north_velocity
+float64 east_velocity
+float64 up_velocity
 
 float64 roll
 float64 pitch
@@ -48,9 +46,9 @@ float32 latitude_std
 float32 longitude_std
 float32 altitude_std
 
-float32 velx_std
-float32 vely_std
-float32 velz_std
+float32 north_velocity_std
+float32 east_velocity_std
+float32 up_velocity_std
 
 float32 roll_std
 float32 pitch_std

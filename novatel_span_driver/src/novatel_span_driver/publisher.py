@@ -195,21 +195,22 @@ class NovatelPublisher(object):
         # Save this on an instance variable, so that it can be published
         # with the IMU message as well.
         self.orientation = tf.transformations.quaternion_from_euler(
-            radians(inspvax.roll),
-            radians(inspvax.pitch),
+            0, #radians(inspvax.pitch),
+            0, #radians(inspvax.roll),
             radians(90 - inspvax.azimuth))
+        print inspvax.azimuth
         odom.pose.pose.orientation = Quaternion(*self.orientation)
         odom.pose.covariance[21] = self.orientation_covariance[0] = pow(2, inspvax.pitch_std)
         odom.pose.covariance[28] = self.orientation_covariance[4] = pow(2, inspvax.roll_std)
         odom.pose.covariance[35] = self.orientation_covariance[8] = pow(2, inspvax.azimuth_std)
 
         # Twist is relative to vehicle frame
-        odom.twist.twist.linear.x = inspvax.velx
-        odom.twist.twist.linear.y = inspvax.vely
-        odom.twist.twist.linear.z = inspvax.velz
-        TWIST_COVAR[0] = pow(2, inspvax.velx_std)
-        TWIST_COVAR[7] = pow(2, inspvax.vely_std)
-        TWIST_COVAR[14] = pow(2, inspvax.velz_std)
+        odom.twist.twist.linear.x = inspvax.east_velocity
+        odom.twist.twist.linear.y = inspvax.north_velocity
+        odom.twist.twist.linear.z = inspvax.up_velocity
+        TWIST_COVAR[0] = pow(2, inspvax.east_velocity_std)
+        TWIST_COVAR[7] = pow(2, inspvax.north_velocity_std)
+        TWIST_COVAR[14] = pow(2, inspvax.up_velocity_std)
         #odom.twist.twist.angular = imu.angular_velocity
         odom.twist.covariance = TWIST_COVAR
 

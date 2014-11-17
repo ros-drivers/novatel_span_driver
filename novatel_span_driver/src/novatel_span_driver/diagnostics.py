@@ -29,8 +29,74 @@
 import rospy
 import diagnostic_updater
 
+from diagnostic_msgs.msg import DiagnosticStatus
 from novatel_msgs.msg import BESTPOS, INSPVAX
 
 class NovatelDiagnostics(object):
     def __init__(self):
+        self.last_bestpos = None
+        self.last_inspvax = None
+        rospy.Subscriber("novatel_data/bestpos", BESTPOS, self.bestpos_callback)
+        rospy.Subscriber("novatel_data/inspvax", INSPVAX, self.inspvax_callback)
+
         self.updater = diagnostic_updater.Updater()
+        self.updater.setHardwareID("none")
+        self.updater.add("Novatel SPAN", self.produce_diagnostics)
+
+    def bestpos_callback(self, msg):
+        self.last_bestpos = msg
+        self.updater.setHardwareID("firmware-%d" % msg.header.software_version)
+        self.updater.update()
+
+    def inspvax_callback(self, msg):
+        self.last_inspvax = msg
+        self.updater.update()
+
+    @staticmethod
+    def get_status_string(msg, field):
+        value = getattr(msg, field)
+        matching_status = [ x[len(field) + 1:] for x in dir(msg) if x.startswith(field.upper()) and
+                            value == getattr(msg, x) ]
+        if len(matching_status) != 1:
+            return "No matching constant"
+        return matching_status[0]
+
+    @staticmethod
+    def get_status_bitfield(msg, field):
+        value = getattr(msg, field)
+        matching_statuses = [ x[len(field) + 1:] for x in dir(msg) if x.startswith(field.upper()) and
+                              value | getattr(msg, x) > 0 ]
+        return ', '.join(matching_statuses)
+
+    def produce_diagnostics(self, stat):
+        if self.last_bestpos:
+            stat.add("GNSS Solution Status",
+                    self.get_status_string(self.last_bestpos, "solution_status"))
+            stat.add("GNSS Position Type",
+                    self.get_status_string(self.last_bestpos, "position_type"))
+            self.last_bestpos = None
+
+        if self.last_inspvax:
+            if self.last_inspvax.ins_status != INSPVAX.INS_STATUS_SOLUTION_GOOD:
+                stat.summary(DiagnosticStatus.WARN, "INS Solution not GOOD.")
+            elif self.last_inspvax.position_type != INSPVAX.POSITION_TYPE_PPP:
+                stat.summary(DiagnosticStatus.WARN, "INS Position type not PPP.")
+            else:
+                stat.summary(DiagnosticStatus.OK, "INS Solution GOOD, PPP fix present.")
+
+            stat.add("INS Solution Status",
+                    self.get_status_string(self.last_inspvax, "ins_status"))
+            stat.add("INS Position Type",
+                    self.get_status_string(self.last_inspvax, "position_type"))
+            stat.add("INS Extended Status",
+                    self.get_status_bitfield(self.last_inspvax, "extended_status"))
+            stat.add("Seconds since last ZUPT or position update.",
+                    self.last_inspvax.seconds_since_update)
+            stat.add("Receiver Status",
+                    self.get_status_bitfield(self.last_inspvax.header, "receiver_status"))
+            self.last_inspvax = None
+        else:
+            stat.summary(diagnostic_msgs.msg.DiagnosticStatus.ERROR,
+                         "No INSPVAX logs received from Novatel system.")
+
+        return stat
