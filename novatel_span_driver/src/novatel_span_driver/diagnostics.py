@@ -65,7 +65,7 @@ class NovatelDiagnostics(object):
     def get_status_bitfield(msg, field):
         value = getattr(msg, field)
         matching_statuses = [ x[len(field) + 1:] for x in dir(msg) if x.startswith(field.upper()) and
-                              value | getattr(msg, x) > 0 ]
+                              value & getattr(msg, x) ]
         return ', '.join(matching_statuses)
 
     def produce_diagnostics(self, stat):
