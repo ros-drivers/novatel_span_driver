@@ -47,6 +47,8 @@ class NovatelWheelVelocity(object):
         # SPAN wants to know how much delay is associated with our velocity report.
         # This is specified in milliseconds.
         self.latency = rospy.get_param("~wheel_velocity_latency", 100)
+        max_frequency = rospy.get_param("~wheel_velocity_max_frequency", 1.0)
+        self.minimum_period = rospy.Duration(1.0 / max_frequency)
 
         # Send setup command.
         self.circumference = self.fake_wheel_diameter * pi
@@ -59,16 +61,17 @@ class NovatelWheelVelocity(object):
         self.port.send(cmd)
 
         self.cumulative_ticks = 0
-        self.last_stamp = None
+        self.last_received_stamp = None
+        self.last_sent = None
         rospy.Subscriber('odom', Odometry, self.odom_handler)
 
     def odom_handler(self, odom):
-        if self.last_stamp:
+        if self.last_received_stamp:
             # Robot's linear velocity in m/s.
             velocity = abs(odom.twist.twist.linear.x)
             velocity_ticks = velocity * self.fake_wheel_ticks / self.circumference
 
-            period = (odom.header.stamp - self.last_stamp).to_sec()
+            period = (odom.header.stamp - self.last_received_stamp).to_sec()
             self.cumulative_ticks += velocity_ticks * period
 
             cmd = 'wheelvelocity %d %d %d 0 %f 0 0 %d \r\n' % (
@@ -78,7 +81,9 @@ class NovatelWheelVelocity(object):
                 velocity_ticks,
                 self.cumulative_ticks)
 
-            rospy.logdebug("Sending: %s" % cmd)
-            self.port.send(cmd)
+            if not self.last_sent or (odom.header.stamp - self.last_sent) > self.minimum_period:
+                rospy.logdebug("Sending: %s" % repr(cmd))
+                self.port.send(cmd)
+                self.last_sent = odom.header.stamp
 
-        self.last_stamp = odom.header.stamp
+        self.last_received_stamp = odom.header.stamp
