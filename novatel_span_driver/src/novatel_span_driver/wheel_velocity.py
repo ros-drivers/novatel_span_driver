@@ -56,22 +56,29 @@ class NovatelWheelVelocity(object):
             self.circumference / self.fake_wheel_ticks)
 
         rospy.logdebug("Sending: %s" % cmd)
+        self.port.send(cmd)
 
         self.cumulative_ticks = 0
+        self.last_stamp = None
         rospy.Subscriber('odom', Odometry, self.odom_handler)
 
     def odom_handler(self, odom):
-        # Robot's linear velocity in m/s.
-        velocity = abs(odom.twist.twist.linear.x)
-        self.cumulative_ticks += velocity * self.fake_wheel_ticks / self.circumference
+        if self.last_stamp:
+            # Robot's linear velocity in m/s.
+            velocity = abs(odom.twist.twist.linear.x)
+            velocity_ticks = velocity * self.fake_wheel_ticks / self.circumference
 
-        cmd = 'wheelvelocity %d %d %d 0 %f 0 0 %d \r\n' % (
-            self.latency,
-            self.fake_wheel_ticks,
-            int(velocity),
-            velocity,
-            self.cumulative_ticks)
+            period = (odom.header.stamp - self.last_stamp).to_sec()
+            self.cumulative_ticks += velocity_ticks * period
 
-        rospy.logdebug("Sending: %s" % cmd)
+            cmd = 'wheelvelocity %d %d %d 0 %f 0 0 %d \r\n' % (
+                self.latency,
+                self.fake_wheel_ticks,
+                int(velocity_ticks),
+                velocity_ticks,
+                self.cumulative_ticks)
 
-        self.port.send(cmd)
+            rospy.logdebug("Sending: %s" % cmd)
+            self.port.send(cmd)
+
+        self.last_stamp = odom.header.stamp
