@@ -195,8 +195,8 @@ class NovatelPublisher(object):
         # Save this on an instance variable, so that it can be published
         # with the IMU message as well.
         self.orientation = tf.transformations.quaternion_from_euler(
-            0, #radians(inspvax.pitch),
-            0, #radians(inspvax.roll),
+            radians(inspvax.pitch),
+            radians(inspvax.roll),
             radians(90 - inspvax.azimuth))
         print inspvax.azimuth
         odom.pose.pose.orientation = Quaternion(*self.orientation)
