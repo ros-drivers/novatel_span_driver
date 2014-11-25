@@ -2,6 +2,17 @@
 Changelog for package novatel_span_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add capture from INS PPP, default value for IMU rate, fix test, add docs to example launcher.
+* Throttle wheelvelocity commands to 1Hz, as recommended by Novatel.
+* Fix velx/y mixup, add diagnostic publisher.
+* BESTPOSB -> BESTPOS, add diagnostic constants and shim class.
+* Treat altitude as positive-up.
+* Update messages to include header, fix header to match documentation.
+* Add wheel velocity handler.
+* Contributors: Mike Purvis
+
 0.2.0 (2014-10-29)
 ------------------
 * Re-work the publisher class.
