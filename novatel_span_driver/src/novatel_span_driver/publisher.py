@@ -85,7 +85,7 @@ class NovatelPublisher(object):
         # first coordinate received.
         self.zero_start = rospy.get_param('~zero_start', False)
 
-        self.imu_rate = rospy.get_param('~rate')
+        self.imu_rate = rospy.get_param('~rate', 100)
 
         # Topic publishers
         self.pub_imu = rospy.Publisher('imu/data', Imu, queue_size=1)

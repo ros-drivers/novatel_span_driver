@@ -1,7 +1,7 @@
 <launch>
+  <!-- This data log is from a ProPak6 with no connected IMU. -->
   <node name="novatel_span_driver" pkg="novatel_span_driver" type="driver">
     <param name="pcap_file" value="$(find novatel_span_driver)/test/propak6-basic-fix.pcap.gz" />
-    <param name="rate" value="200" />
   </node>
   <test test-name="hztest_test" pkg="rostest" type="hztest" name="hztest">
     <rosparam>
