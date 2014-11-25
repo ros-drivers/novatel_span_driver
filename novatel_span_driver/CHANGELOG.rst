@@ -2,8 +2,8 @@
 Changelog for package novatel_span_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2014-11-25)
+------------------
 * Add capture from INS PPP, default value for IMU rate, fix test, add docs to example launcher.
 * Throttle wheelvelocity commands to 1Hz, as recommended by Novatel.
 * Fix velx/y mixup, add diagnostic publisher.

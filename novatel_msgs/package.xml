@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>novatel_msgs</name>
-  <version>0.2.0</version>
+  <version>1.0.0</version>
   <description>ROS messages which represent raw Novatel SPAN data.</description>
 
   <maintainer email="mpurvis@clearpathrobotics.com">Mike Purvis</maintainer>

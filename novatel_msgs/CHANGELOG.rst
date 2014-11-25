@@ -2,8 +2,8 @@
 Changelog for package novatel_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2014-11-25)
+------------------
 * Fix velx/y mixup, add diagnostic publisher.
 * BESTPOSB -> BESTPOS, add diagnostic constants.
 * Update messages to include header, fix header to match documentation.
