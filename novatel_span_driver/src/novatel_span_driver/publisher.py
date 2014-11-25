@@ -35,7 +35,6 @@ from sensor_msgs.msg import Imu, NavSatFix, NavSatStatus
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Quaternion, Point, Pose, Twist
 
-# Other
 from math import radians, pow
 
 # FIXED COVARIANCES

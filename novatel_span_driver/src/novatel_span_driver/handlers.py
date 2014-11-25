@@ -46,4 +46,3 @@ class MessageHandler(Handler):
         self.message.translator().deserialize(buff)
         self.message.header = header
         self.publisher.publish(self.message)
-
