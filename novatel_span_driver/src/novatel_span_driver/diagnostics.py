@@ -97,7 +97,7 @@ class NovatelDiagnostics(object):
                      self.get_status_bitfield(self.last_inspvax.header, "receiver_status"))
             self.last_inspvax = None
         else:
-            stat.summary(diagnostic_msgs.msg.DiagnosticStatus.ERROR,
+            stat.summary(DiagnosticStatus.ERROR,
                          "No INSPVAX logs received from Novatel system.")
 
         return stat
