@@ -210,7 +210,6 @@ class NovatelPublisher(object):
         TWIST_COVAR[0] = pow(2, inspvax.east_velocity_std)
         TWIST_COVAR[7] = pow(2, inspvax.north_velocity_std)
         TWIST_COVAR[14] = pow(2, inspvax.up_velocity_std)
-        #odom.twist.twist.angular = imu.angular_velocity
         odom.twist.covariance = TWIST_COVAR
 
         self.pub_odom.publish(odom)
