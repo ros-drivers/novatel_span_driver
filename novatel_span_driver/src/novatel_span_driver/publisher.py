@@ -228,7 +228,7 @@ class NovatelPublisher(object):
     def corrimudata_handler(self, corrimudata):
         # TODO: Work out these covariances properly. Logs provide covariances in local frame, not body
         imu = Imu()
-        imu.header.stamp == rospy.Time.now()
+        imu.header.stamp = rospy.Time.now()
         imu.header.frame_id = self.base_frame
 
         # Populate orientation field with one from inspvax message.
