@@ -89,7 +89,7 @@ class NovatelPublisher(object):
         # Topic publishers
         self.pub_imu = rospy.Publisher('imu/data', Imu, queue_size=1)
         self.pub_odom = rospy.Publisher('navsat/odom', Odometry, queue_size=1)
-        self.pub_origin = rospy.Publisher('navsat/origin', Pose, queue_size=1)
+        self.pub_origin = rospy.Publisher('navsat/origin', Pose, queue_size=1, latch=True)
         self.pub_navsatfix = rospy.Publisher('navsat/fix', NavSatFix, queue_size=1)
 
         if self.publish_tf:
