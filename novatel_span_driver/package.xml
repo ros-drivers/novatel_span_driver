@@ -5,6 +5,8 @@
   <description>Python driver for NovAtel SPAN devices.</description>
 
   <maintainer email="mpurvis@clearpathrobotics.com">Mike Purvis</maintainer>
+  <maintainer email="icolwell@gsd.uwaterloo.ca">Ian Colwell</maintainer>
+  <maintainer email="jwhitley@autonomoustuff.com">Josh Whitley</maintainer>
 
   <author email="support@novatel.com">NovAtel Support</author>
 
