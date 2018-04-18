@@ -159,7 +159,7 @@ class NovatelPublisher(object):
         navsat.longitude = bestpos.longitude
 
         # Altitude in metres.
-        navsat.altitude = bestpos.altitude
+        navsat.altitude = bestpos.altitude + bestpos.undulation
         navsat.position_covariance[0] = pow(2, bestpos.latitude_std)
         navsat.position_covariance[4] = pow(2, bestpos.longitude_std)
         navsat.position_covariance[8] = pow(2, bestpos.altitude_std)
