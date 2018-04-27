@@ -2,6 +2,11 @@
 Changelog for package novatel_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Adding new maintainers.
+* Contributors: Joshua Whitley
+
 1.0.0 (2014-11-25)
 ------------------
 * Fix velx/y mixup, add diagnostic publisher.
