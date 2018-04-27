@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>novatel_span_driver</name>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   <description>Python driver for NovAtel SPAN devices.</description>
 
   <maintainer email="mpurvis@clearpathrobotics.com">Mike Purvis</maintainer>

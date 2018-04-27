@@ -2,8 +2,8 @@
 Changelog for package novatel_span_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2018-04-26)
+------------------
 * Merge pull request `#27 <https://github.com/ros-drivers/novatel_span_driver/issues/27>`_ from michaelhsmart/ellipsoidal_from_orthometric
   Fix orthometric to ellipsoidal conversion
   Merged based on recommendations from @mikepurvis and @icolwell.

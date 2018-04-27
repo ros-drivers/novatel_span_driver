@@ -2,8 +2,8 @@
 Changelog for package novatel_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2018-04-26)
+------------------
 * Adding new maintainers.
 * Contributors: Joshua Whitley
 
