@@ -126,7 +126,7 @@ def create_test_sock(pcap_filename):
             tcp = decoder.decode(payload).child().child()
             body_list.append(tcp.child().get_packet())
         except AttributeError:
-            print decoder.decode(payload)
+            print(decoder.decode(payload))
             raise
 
     data_io = StringIO(''.join(body_list))
