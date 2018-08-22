@@ -11,7 +11,7 @@
   <test test-name="hztest_test" pkg="rostest" type="hztest" name="hztest">
     <rosparam>
       topic: /navsat/odom
-      hz: 10.0
+      hz: 12.5
       hzerror: 5.0
       test_duration: 5.0
       wait_time: 5.0
