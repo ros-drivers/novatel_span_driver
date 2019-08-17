@@ -90,6 +90,7 @@ class Port(threading.Thread):
                                  (header.translator().size, header_length))
 
         except (socket.timeout, serial.SerialTimeoutException) as e:
+            rospy.logwarn("Connection timeout... %s" % str(e))
             return None, None
 
         header_str = self.sock.recv(header_length)

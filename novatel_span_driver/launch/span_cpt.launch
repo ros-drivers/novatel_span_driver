@@ -1,6 +1,0 @@
-<launch>
-  <include file="$(find novatel_span_driver)/launch/example_serial.launch">
-    <arg name="serial_port" value="/dev/ttyUSB0" />
-    <arg name="serial_baud" value="9600" />
-  </include>
-</launch>

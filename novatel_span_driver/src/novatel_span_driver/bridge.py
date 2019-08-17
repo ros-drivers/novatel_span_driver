@@ -46,6 +46,8 @@ from novatel_span_driver import translator
 
 DEFAULT_IP = '198.161.73.9'
 DEFAULT_PORT = 3001
+DEFAULT_DEV_NO = '/dev/ttyUSB0'
+DEFAULT_BAUDRATE = 115200
 
 SOCKET_TIMEOUT = 100.0
 socks = []
@@ -59,7 +61,12 @@ def init():
     pcap_file_name = rospy.get_param('~pcap_file', False)
 
     if not pcap_file_name:
-        sock = create_sock('data')
+        connect_type = rospy.get_param('~connect_type', False)
+        if not connect_type:
+            rospy.logfatal("Failed to fetch parameter: connect_type, please configure it as 'TCP' or 'SERIAL'")
+            exit(1)
+
+        sock = create_sock('data', connect_type)
     else:
         sock = create_test_sock(pcap_file_name)
 
@@ -75,22 +82,21 @@ def init():
     rospy.on_shutdown(shutdown)
 
 
-def create_sock(name):
+def create_sock(name, connect_type):
     try:
-        if rospy.has_param('~ip_address'):
-            ip = rospy.get_param('~ip_address')
-            data_port = rospy.get_param('~ip_port', DEFAULT_PORT)
+        if "TCP" == connect_type:
+            ip = rospy.get_param('~ip', DEFAULT_IP)
+            port = rospy.get_param('~port', DEFAULT_PORT)
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             ip_port = (ip, port)
             sock.connect(ip_port)
             rospy.loginfo("Successfully connected to %%s port at %s:%d" % ip_port % name)
-        elif rospy.has_param('~serial_port'):
-            port = rospy.get_param('~serial_port')
-            baud = rospy.get_param('~serial_baud', 9600)
-            sock = serial.Serial(port=port, baudrate=baud, timeout=SOCKET_TIMEOUT)
-            rospy.loginfo("Successfully connected to %%s port at %s:%d" % (port, baud) % name)
+        elif "SERIAL" == connect_type:
+            dev_no = rospy.get_param('~dev_no', DEFAULT_DEV_NO)
+            baud = rospy.get_param('~baudrate', DEFAULT_BAUDRATE)
+            sock = serial.Serial(port=dev_no, baudrate=baud, timeout=SOCKET_TIMEOUT, rtscts=True, dsrdtr=True)
+            rospy.loginfo("Successfully connected to %%s port at %s:%d" % (dev_no, baud) % name)
 
-            # TODO: Fix this monkey patch
             # make methods dynamically for make serial obj be compatible with socket obj
             from types import MethodType
             sock.recv = MethodType(serial.Serial.read, sock, serial.Serial)
@@ -98,15 +104,10 @@ def create_sock(name):
             sock.settimeout = MethodType(lambda *args, **kwargs: None, sock, serial.Serial)
             sock.shutdown = MethodType(lambda *args, **kwargs: None, sock, serial.Serial)
         else:
-            ip = rospy.get_param('~ip', DEFAULT_IP)
-            data_port = rospy.get_param('~port', DEFAULT_PORT)
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            ip_port = (ip, port)
-            sock.connect(ip_port)
-            rospy.loginfo("Successfully connected to %%s port at %s:%d" % ip_port % name)
+            rospy.logfatal("Connect type: %s isn't supported yet, please configure it as 'TCP' or 'SERIAL'" % connect_type)
+            exit(1)
     except (socket.error, serial.SerialException) as e:
-        # rospy.logfatal("Couldn't connect to %%s port at %s:%d: %%s" % ip_port % (name, str(e)))
-        rospy.logfatal("Couldn't connect to port at{0}:{1}".format(name, str(e)))
+        rospy.logfatal("Couldn't connect to port at %s:%s" % (name, str(e)))
         exit(1)
     sock.settimeout(SOCKET_TIMEOUT)
     socks.append(sock)
