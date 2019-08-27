@@ -35,11 +35,13 @@ from translator import Translator
 # Python
 import threading
 import socket
+import serial
 import struct
 from cStringIO import StringIO
 
 
 class Port(threading.Thread):
+
     """ Common base class for DataPort and ControlPort. Provides functionality to
       recv/send novatel-formatted packets from the socket. Could in future
       support LoggingPort and DisplayPort."""
@@ -69,7 +71,7 @@ class Port(threading.Thread):
                     bytes_before_sync = ''.join(bytes_before_sync)
                     if len(bytes_before_sync) > 0 and not bytes_before_sync.startswith("\r\n<OK"):
                         rospy.logwarn(("Discarded %d bytes between end of previous message " +
-                                      "and next sync byte.") % len(bytes_before_sync))
+                                       "and next sync byte.") % len(bytes_before_sync))
                         rospy.logwarn("Discarded: %s" % repr(bytes_before_sync))
                     break
                 bytes_before_sync.append(sync)
@@ -87,7 +89,8 @@ class Port(threading.Thread):
                 raise ValueError("Bad header length. Expected %d, got %d" %
                                  (header.translator().size, header_length))
 
-        except socket.timeout:
+        except (socket.timeout, serial.SerialTimeoutException) as e:
+            rospy.logwarn("Connection timeout... %s" % str(e))
             return None, None
 
         header_str = self.sock.recv(header_length)

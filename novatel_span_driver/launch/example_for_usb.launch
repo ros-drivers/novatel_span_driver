@@ -1,13 +1,13 @@
 <launch>
     <!-- connect_type: TCP/SERIAL -->
-    <arg name="connect_type" default="TCP"/>
-    <arg name="ip" default="198.161.73.9"/>
-    <arg name="port" default="3001"/>
+    <arg name="connect_type" default="SERIAL"/>
+    <arg name="dev_no" default="/dev/ttyUSB0"/>
+    <arg name="baudrate" default="115200"/>
 
     <node name="novatel_span_driver" pkg="novatel_span_driver" type="driver">
         <param name="connect_type" value="$(arg connect_type)"/>
-        <param name="ip" value="$(arg ip)"/>
-        <param name="port" value="$(arg port)"/>
+        <param name="dev_no" value="$(arg dev_no)"/>
+        <param name="baudrate" value="$(arg baudrate)"/>
         <rosparam ns="configuration">
             log_request:
                 inspvaxb: 0.02
