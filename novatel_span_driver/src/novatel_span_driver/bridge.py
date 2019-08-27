@@ -104,7 +104,8 @@ def create_sock(name, connect_type):
             sock.settimeout = MethodType(lambda *args, **kwargs: None, sock, serial.Serial)
             sock.shutdown = MethodType(lambda *args, **kwargs: None, sock, serial.Serial)
         else:
-            rospy.logfatal("Connect type: %s isn't supported yet, please configure it as 'TCP' or 'SERIAL'" % connect_type)
+            rospy.logfatal("Connect type: %s isn't supported yet, please configure it as 'TCP' or 'SERIAL'"
+                           % connect_type)
             exit(1)
     except (socket.error, serial.SerialException) as e:
         rospy.logfatal("Couldn't connect to port at %s:%s" % (name, str(e)))
